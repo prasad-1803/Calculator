@@ -38,6 +38,7 @@ body {
 .calculator__output {
     font-size: 1.5em;
     color: #636262;
+    font-weight: 30%;
 }
 
 .calculator__keys {
@@ -48,17 +49,18 @@ body {
 
 
 .calculator__key {
-    background-color: #444;
+    background-color: #333;
     border: none;
     border-radius: 50%;
     padding: 16px;
-    font-size: 1.7em;
+    font-size: 1.5em;
     color: #fff;
     cursor: pointer;
     transition: background-color 0.3s, transform 0.1s; /* Transition for background and transform */
     display: flex;
     justify-content: center;
     align-items: center;
+    font-weight: bold;
     text-align: center;
 }
 
