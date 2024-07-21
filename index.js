@@ -31,6 +31,49 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     };
 
+    // Function to handle input and prevent multiple operators
+    const handleInput = (buttonText) => {
+        let currentValue = inputField.value;
+
+        // Define regex for operators
+        const operatorRegex = /[\+\-×÷]/;
+        // Replace multiple consecutive operators with a single operator
+        currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
+
+        if (buttonText === '+') {
+            if (operatorRegex.test(currentValue.slice(-1))) {
+                // Replace last operator if already present
+                inputField.value = currentValue.slice(0, -1) + buttonText;
+            } else {
+                // Append operator if not already present
+                inputField.value += buttonText;
+            }
+        } else if (buttonText === '-') {
+            if (operatorRegex.test(currentValue.slice(-1))) {
+                inputField.value = currentValue.slice(0, -1) + buttonText;
+            } else {
+                inputField.value += buttonText;
+            }
+        } else if (buttonText === '×') {
+            if (operatorRegex.test(currentValue.slice(-1))) {
+                inputField.value = currentValue.slice(0, -1) + buttonText;
+            } else {
+                inputField.value += buttonText;
+            }
+        } else if (buttonText === '÷') {
+            if (operatorRegex.test(currentValue.slice(-1))) {
+                inputField.value = currentValue.slice(0, -1) + buttonText;
+            } else {
+                inputField.value += buttonText;
+            }
+        } else {
+            inputField.value += buttonText;
+        }
+
+        // Recalculate after updating input field
+        evaluateExpression();
+    };
+
     // Add click event listeners to all calculator buttons
     document.querySelectorAll('.calculator__key').forEach(button => {
         button.addEventListener('click', () => {
@@ -73,15 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
                     resultField.textContent = 'Invalid Expression'; // Show error message
                 }
             } else {
-                // Append to input field but only update result
-                if (previousResult && isResultDisplayed) {
-                    inputField.value = previousResult + buttonText;
-                    previousResult = '';
-                    isResultDisplayed = false;
-                } else {
-                    inputField.value += buttonText;
-                }
-                evaluateExpression(); // Recalculate after adding a new character
+                handleInput(buttonText); // Handle the button input
             }
         });
     });
