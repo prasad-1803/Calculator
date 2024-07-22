@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Ensure the expression contains only valid characters
         const isValid = /^[\d+\-*/().\s]*$/.test(expression);
+        
         // Check if the expression ends with a valid character
         const endsWithOperator = /[\d)]$/.test(expression);
 
