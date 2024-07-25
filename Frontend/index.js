@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Ensure the expression contains only valid characters
         const isValid = /^[\d+\-*/().\s]*$/.test(expression);
-        
+
         // Check if the expression ends with a valid character
         const endsWithOperator = /[\d)]$/.test(expression);
 
@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", function() {
         } else {
             resultField.textContent = ''; // Clear result if expression is invalid
         }
+        console.log("prasad");
     };
 
     // Function to handle input and prevent multiple operators
@@ -38,6 +39,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         // Define regex for operators
         const operatorRegex = /[\+\-×÷]/;
+
         // Replace multiple consecutive operators with a single operator
         currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
 
