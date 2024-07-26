@@ -1,3 +1,6 @@
+/* styles.css */
+
+/* General body styling */
 body {
     display: flex;
     justify-content: center;
@@ -5,8 +8,19 @@ body {
     height: 100vh;
     background-color: #333;
     margin: 0;
+    overflow: hidden; /* Prevent scrollbars from appearing if content overflows */
 }
 
+/* Container for both calculator and logs */
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px; /* Gap between calculator and logs table */
+    width: 90%;
+    max-width: 1200px;
+}
+
+/* Block for calculator */
 .calculator {
     background-color: #000;
     border-radius: 20px;
@@ -15,6 +29,7 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Elements within the calculator */
 .calculator__display {
     background-color: #000;
     border-radius: 10px;
@@ -38,7 +53,7 @@ body {
 .calculator__output {
     font-size: 1.5em;
     color: #636262;
-    font-weight: 30%;
+    font-weight: 300; /* Fixed font-weight */
 }
 
 .calculator__keys {
@@ -47,7 +62,7 @@ body {
     gap: 15px;
 }
 
-
+/* Styling for each key in the calculator */
 .calculator__key {
     background-color: #333;
     border: none;
@@ -66,7 +81,6 @@ body {
 
 .calculator__key:hover {
     background-color: #555;
-    transition: background-color 0.3s ease; 
 }
 
 .calculator__key:active {
@@ -80,11 +94,46 @@ body {
 
 .calculator__key--equals:hover {
     background-color: #004bb5;
-    transition: background-color 0.3s ease; 
 }
 
-/* For tablets in portrait mode and small desktops */
+/* Block for logs */
+.logs {
+    background-color: #000;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
+/* Styling for the logs table */
+.logs__table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+}
+
+.logs__table, .logs__table th, .logs__table td {
+    border: 1px solid #ddd;
+}
+
+.logs__table th, .logs__table td {
+    padding: 8px;
+    text-align: center;
+}
+
+.logs__table-head {
+    background-color: #444;
+}
+
+/* Responsive adjustments */
 @media screen and (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        gap: 20px; /* Adjust gap for mobile */
+    }
+
     .calculator {
         width: 90%;
         padding: 10px;
@@ -103,6 +152,10 @@ body {
     .calculator__key {
         padding: 12px;
         font-size: 1.2em;
+    }
+
+    .logs {
+        width: 90%;
     }
 }
 
@@ -130,5 +183,9 @@ body {
 
     .calculator__keys {
         gap: 10px;
+    }
+
+    .logs {
+        width: 100%;
     }
 }

@@ -1,20 +1,17 @@
 document.addEventListener("DOMContentLoaded", function() {
     const inputField = document.querySelector('.calculator__input');
     const resultField = document.querySelector('.calculator__output');
+    const logsTableBody = document.querySelector('#logsTable tbody'); // Ensure this matches your HTML ID
     let previousResult = '';
     let isResultDisplayed = false;
 
-    // Function to evaluate the expression
     const evaluateExpression = () => {
         let expression = inputField.value
-            .replace(/×/g, '*')  // Replace '×' with '*'
-            .replace(/÷/g, '/')  // Replace '÷' with '/'
-            .replace(/%/g, '/100'); // Replace '%' with '/100'
-
-        // Ensure the expression contains only valid characters
+            .replace(/×/g, '*')
+            .replace(/÷/g, '/')
+            .replace(/%/g, '/100');
+        
         const isValid = /^[\d+\-*/().\s]*$/.test(expression);
-
-        // Check if the expression ends with a valid character
         const endsWithOperator = /[\d)]$/.test(expression);
 
         if (isValid && endsWithOperator && expression.length > 0) {
@@ -23,32 +20,27 @@ document.addEventListener("DOMContentLoaded", function() {
                 if (isNaN(result) || !isFinite(result)) {
                     throw new Error('Invalid Result');
                 }
-                resultField.textContent = result; // Show result in the result field
+                resultField.textContent = result;
+                return result;
             } catch (e) {
-                resultField.textContent = 'Invalid Expression'; // Show error message
+                resultField.textContent = 'Invalid Expression';
+                return null;
             }
         } else {
-            resultField.textContent = ''; // Clear result if expression is invalid
+            resultField.textContent = '';
+            return null;
         }
-        console.log("prasad");
     };
 
-    // Function to handle input and prevent multiple operators
     const handleInput = (buttonText) => {
         let currentValue = inputField.value;
-
-        // Define regex for operators
         const operatorRegex = /[\+\-×÷]/;
-
-        // Replace multiple consecutive operators with a single operator
         currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
 
         if (buttonText === '+') {
             if (operatorRegex.test(currentValue.slice(-1))) {
-                // Replace last operator if already present
                 inputField.value = currentValue.slice(0, -1) + buttonText;
             } else {
-                // Append operator if not already present
                 inputField.value += buttonText;
             }
         } else if (buttonText === '-') {
@@ -73,31 +65,69 @@ document.addEventListener("DOMContentLoaded", function() {
             inputField.value += buttonText;
         }
 
-        // Recalculate after updating input field
         evaluateExpression();
     };
 
-    // Add click event listeners to all calculator buttons
+    const sendLog = async (expression, isValid, output) => {
+        if (!expression) {
+            alert('Expression is empty');
+            return;
+        }
+        try {
+            const response = await fetch('/api/logs', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ expression, is_valid: isValid, output })
+            });
+            const result = await response.json();
+            if (!response.ok) {
+                alert(result.message);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
+    const fetchLogs = async () => {
+        try {
+            const response = await fetch('/api/logs');
+            const logs = await response.json();
+            logsTableBody.innerHTML = '';
+            logs.forEach(log => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${log.id}</td>
+                    <td>${log.expression}</td>
+                    <td>${log.is_valid}</td>
+                    <td>${log.output || 'N/A'}</td>
+                    <td>${new Date(log.created_on).toLocaleString()}</td>
+                `;
+                logsTableBody.appendChild(row);
+            });
+        } catch (error) {
+            console.error('Error:', error);
+        }
+    };
+
     document.querySelectorAll('.calculator__key').forEach(button => {
-        button.addEventListener('click', () => {
-            const buttonText = button.dataset.key; // Get the value of the clicked button
+        button.addEventListener('click', async () => {
+            const buttonText = button.dataset.key;
 
             if (buttonText === 'AC') {
-                // Clear everything
                 inputField.value = '';
                 resultField.textContent = '';
                 previousResult = '';
                 isResultDisplayed = false;
             } else if (buttonText === '⌫') {
-                // Remove the last character
                 inputField.value = inputField.value.slice(0, -1);
-                evaluateExpression(); // Recalculate after deletion
+                evaluateExpression();
             } else if (buttonText === '=') {
-                // Calculate and show the result
                 let expression = inputField.value
                     .replace(/×/g, '*')
                     .replace(/÷/g, '/')
-                    .replace(/%/g, '/100'); // Handle percentage
+                    .replace(/%/g, '/100');
 
                 const isValid = /^[\d+\-*/().\s]*$/.test(expression);
                 const endsWithOperator = /[\d)]$/.test(expression);
@@ -108,22 +138,26 @@ document.addEventListener("DOMContentLoaded", function() {
                         if (isNaN(result) || !isFinite(result)) {
                             throw new Error('Invalid Result');
                         }
-                        inputField.value = result; // Transfer result to input field
-                        resultField.textContent = result; // Show result
+                        inputField.value = result;
+                        resultField.textContent = result;
                         previousResult = '';
                         isResultDisplayed = false;
+                        await sendLog(expression, true, result);
                     } catch (e) {
-                        resultField.textContent = 'Invalid Expression'; // Show error message
+                        resultField.textContent = 'Invalid Expression';
+                        await sendLog(expression, false, null);
                     }
                 } else {
-                    resultField.textContent = 'Invalid Expression'; // Show error message
+                    resultField.textContent = 'Invalid Expression';
+                    await sendLog(expression, false, null);
                 }
             } else {
-                handleInput(buttonText); // Handle the button input
+                handleInput(buttonText);
             }
         });
     });
 
-    // Recalculate the expression whenever the user types in the input field
     inputField.addEventListener('input', evaluateExpression);
+
+    fetchLogs();
 });
