@@ -1,11 +1,14 @@
 document.addEventListener("DOMContentLoaded", function() {
+    console.log("DOM fully loaded and parsed");
+
     const inputField = document.querySelector('.calculator__input');
     const resultField = document.querySelector('.calculator__output');
-    const logsTableBody = document.querySelector('#logsTable tbody'); // Ensure this matches your HTML ID
+    const logsTableBody = document.querySelector('#logsTable tbody');
     let previousResult = '';
     let isResultDisplayed = false;
 
     const evaluateExpression = () => {
+        console.log("Evaluating expression");
         let expression = inputField.value
             .replace(/×/g, '*')
             .replace(/÷/g, '/')
@@ -33,6 +36,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const handleInput = (buttonText) => {
+        console.log(`Handling input: ${buttonText}`);
         let currentValue = inputField.value;
         const operatorRegex = /[\+\-×÷]/;
         currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
@@ -51,6 +55,7 @@ document.addEventListener("DOMContentLoaded", function() {
     };
 
     const sendLog = async (expression, isValid, output) => {
+        console.log("Sending log");
         if (!expression) {
             alert('Expression is empty');
             return;
@@ -68,13 +73,22 @@ document.addEventListener("DOMContentLoaded", function() {
                 alert(result.message);
             }
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error sending log:', error);
         }
     };
 
     const fetchLogs = async () => {
+        console.log("Fetching logs");
         try {
-            const response = await fetch('http://localhost:3000/api/logs');
+            const response = await fetch('http://localhost:3000/api/logs', {
+                method: 'GET',
+                headers: {
+                    'Cache-Control': 'no-cache'
+                }
+            });
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
             const logs = await response.json();
             logsTableBody.innerHTML = '';
             logs.forEach(log => {
@@ -89,9 +103,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 logsTableBody.appendChild(row);
             });
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Error fetching logs:', error);
         }
     };
+
+    // Fetch logs when the page is refreshed
+    fetchLogs(); // Ensure this is only called once
 
     document.querySelectorAll('.calculator__key').forEach(button => {
         button.addEventListener('click', async () => {
@@ -141,5 +158,5 @@ document.addEventListener("DOMContentLoaded", function() {
 
     inputField.addEventListener('input', evaluateExpression);
 
-    fetchLogs();
+    
 });

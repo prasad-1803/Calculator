@@ -3,7 +3,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Sequelize, DataTypes } = require('sequelize');
 const logger = require('./logger');
-const cors = require('cors');  // Import cors package
+const cors = require('cors');  
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -34,13 +34,13 @@ const CalculatorLog = sequelize.define('calculator_log', {
     allowNull: false
   }
 }, {
-  timestamps: false, // Disable the default timestamps (createdAt, updatedAt)
-  tableName: 'calculator_logs' // Ensure the table name matches your SQL table
+  timestamps: false, 
+  tableName: 'calculator_logs' 
 });
 
 
 app.use(bodyParser.json());
-app.use(cors());  // Use cors middleware
+app.use(cors());  
 
 // Middleware for logging requests
 app.use((req, res, next) => {
@@ -94,5 +94,5 @@ sequelize.authenticate()
   })
   .catch(err => {
     logger.error('Unable to connect to the database:', err);
-    process.exit(1);  // Exit the process with failure code
+    process.exit(1);  
   });
