@@ -37,25 +37,7 @@ document.addEventListener("DOMContentLoaded", function() {
         const operatorRegex = /[\+\-×÷]/;
         currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
 
-        if (buttonText === '+') {
-            if (operatorRegex.test(currentValue.slice(-1))) {
-                inputField.value = currentValue.slice(0, -1) + buttonText;
-            } else {
-                inputField.value += buttonText;
-            }
-        } else if (buttonText === '-') {
-            if (operatorRegex.test(currentValue.slice(-1))) {
-                inputField.value = currentValue.slice(0, -1) + buttonText;
-            } else {
-                inputField.value += buttonText;
-            }
-        } else if (buttonText === '×') {
-            if (operatorRegex.test(currentValue.slice(-1))) {
-                inputField.value = currentValue.slice(0, -1) + buttonText;
-            } else {
-                inputField.value += buttonText;
-            }
-        } else if (buttonText === '÷') {
+        if (['+', '-', '×', '÷'].includes(buttonText)) {
             if (operatorRegex.test(currentValue.slice(-1))) {
                 inputField.value = currentValue.slice(0, -1) + buttonText;
             } else {
@@ -74,7 +56,7 @@ document.addEventListener("DOMContentLoaded", function() {
             return;
         }
         try {
-            const response = await fetch('/api/logs', {
+            const response = await fetch('http://localhost:3000/api/logs', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -92,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const fetchLogs = async () => {
         try {
-            const response = await fetch('/api/logs');
+            const response = await fetch('http://localhost:3000/api/logs');
             const logs = await response.json();
             logsTableBody.innerHTML = '';
             logs.forEach(log => {
