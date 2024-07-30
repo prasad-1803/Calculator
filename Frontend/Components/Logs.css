@@ -1,0 +1,29 @@
+.logs {
+    background-color: #000;
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-height: 100vh;
+    overflow-y: auto;
+  }
+  
+  .logs__table {
+    width: 100%;
+    border-collapse: collapse;
+    color: #fff;
+  }
+  
+  .logs__table, .logs__table th, .logs__table td {
+    border: 1px solid #ddd;
+  }
+  
+  .logs__table th, .logs__table td {
+    padding: 8px;
+    text-align: center;
+  }
+  
+  .logs__table-head {
+    background-color: #444;
+  }
+  
