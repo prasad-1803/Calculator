@@ -1,65 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator and Logs</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="container">
+  <head>
+    <meta charset="UTF-8" />
     
-        <div id="calculator" class="calculator">
-            <div class="calculator__display">
-                <div class="calculator__content">
-                    <input type="text" class="calculator__input" readonly>
-                    <div class="calculator__output"></div>
-                </div>
-            </div>
-            <div class="calculator__keys">
-                <button class="calculator__key" data-key="AC">AC</button>
-                <button class="calculator__key" data-key="%">%</button>
-                <button class="calculator__key" data-key="⌫">⌫</button>
-                <button class="calculator__key" data-key="÷">÷</button>
-                <button class="calculator__key" data-key="7">7</button>
-                <button class="calculator__key" data-key="8">8</button>
-                <button class="calculator__key" data-key="9">9</button>
-                <button class="calculator__key" data-key="×">×</button>
-                <button class="calculator__key" data-key="4">4</button>
-                <button class="calculator__key" data-key="5">5</button>
-                <button class="calculator__key" data-key="6">6</button>
-                <button class="calculator__key" data-key="-">−</button>
-                <button class="calculator__key" data-key="1">1</button>
-                <button class="calculator__key" data-key="2">2</button>
-                <button class="calculator__key" data-key="3">3</button>
-                <button class="calculator__key" data-key="+">+</button>
-                <button class="calculator__key" data-key="00">00</button>
-                <button class="calculator__key" data-key="0">0</button>
-                <button class="calculator__key" data-key=".">.</button>
-                <button class="calculator__key calculator__key--equals" data-key="=">=</button>
-            </div>
-        </div>
-
-        <!-- Logs Section -->
-        <div class="logs">
-            <h2 class="logs__title">Logs</h2>
-            <table class="logs__table" id="logsTable">
-                <thead class="logs__table-head">
-                    <tr>
-                        <th>ID</th>
-                        <th>Expression</th>
-                        <th>Valid</th>
-                        <th>Output</th>
-                        <th>Created On</th>
-                    </tr>
-                </thead>
-                <tbody>
-                
-                </tbody>
-            </table>
-        </div>
-    </div>
-    
-    <script src="index.js"></script>
-</body>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>calculator</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>
