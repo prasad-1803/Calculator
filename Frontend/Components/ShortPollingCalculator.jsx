@@ -1,14 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './Normal.css'; // Make sure this includes styles for both calculator and logs
 
-import { Link } from 'react-router-dom';
-
-
-
-
-
-
-const NormalCalculator= () => {
+const ShortPollingCalculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
@@ -33,7 +26,16 @@ const NormalCalculator= () => {
     };
 
     useEffect(() => {
+        // Fetch logs initially
         fetchLogs();
+
+        // Set up polling interval
+        const intervalId = setInterval(() => {
+            fetchLogs();
+        }, 5000); // Poll every 5 seconds
+
+        // Clear interval on component unmount
+        return () => clearInterval(intervalId);
     }, []);
 
     const evaluateExpression = (expression) => {
@@ -96,7 +98,7 @@ const NormalCalculator= () => {
                 const result = await response.json();
                 alert(result.message);
             }
-            fetchLogs(); // Fetch logs after sending
+            // No need to fetch logs here, polling will handle it
         } catch (error) {
             console.error('Error sending log:', error);
         }
@@ -134,60 +136,59 @@ const NormalCalculator= () => {
 
     return (
         <div>
-         <h1>this is calculator without using any web protocols</h1>
-       
-        <div className="container">
-            <div className="calculator">
-                <div className="calculator__display">
-                    <div className="calculator__content">
-                        <input
-                            type="text"
-                            className="calculator__input"
-                            value={inputValue}
-                            readOnly
-                        />
-                        <div className="calculator__output">{result}</div>
+            <h1>This is a Calculator with Short Polling</h1>
+            <div className="container">
+                <div className="calculator">
+                    <div className="calculator__display">
+                        <div className="calculator__content">
+                            <input
+                                type="text"
+                                className="calculator__input"
+                                value={inputValue}
+                                readOnly
+                            />
+                            <div className="calculator__output">{result}</div>
+                        </div>
+                    </div>
+                    <div className="calculator__keys">
+                        {['AC', '%', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', '.', '='].map(key => (
+                            <button
+                                key={key}
+                                className={`calculator__key ${key === '=' ? 'calculator__key--equals' : ''}`}
+                                onClick={() => handleButtonClick(key)}
+                            >
+                                {key}
+                            </button>
+                        ))}
                     </div>
                 </div>
-                <div className="calculator__keys">
-                    {['AC', '%', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', '.', '='].map(key => (
-                        <button
-                            key={key}
-                            className={`calculator__key ${key === '=' ? 'calculator__key--equals' : ''}`}
-                            onClick={() => handleButtonClick(key)}
-                        >
-                            {key}
-                        </button>
-                    ))}
+                <div className="logs">
+                    <table className="logs__table">
+                        <thead className="logs__table-head">
+                            <tr>
+                                <th>ID</th>
+                                <th>Expression</th>
+                                <th>Valid</th>
+                                <th>Output</th>
+                                <th>Created On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {logs.map(log => (
+                                <tr key={log.id}>
+                                    <td>{log.id}</td>
+                                    <td>{log.expression}</td>
+                                    <td>{log.is_valid ? 'Yes' : 'No'}</td>
+                                    <td>{log.output || 'N/A'}</td>
+                                    <td>{new Date(log.created_on).toLocaleString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div className="logs">
-                <table className="logs__table">
-                    <thead className="logs__table-head">
-                        <tr>
-                            <th>ID</th>
-                            <th>Expression</th>
-                            <th>Valid</th>
-                            <th>Output</th>
-                            <th>Created On</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {logs.map(log => (
-                            <tr key={log.id}>
-                                <td>{log.id}</td>
-                                <td>{log.expression}</td>
-                                <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                <td>{log.output || 'N/A'}</td>
-                                <td>{new Date(log.created_on).toLocaleString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
         </div>
     );
 };
 
-export default NormalCalculator;
+export default ShortPollingCalculator;

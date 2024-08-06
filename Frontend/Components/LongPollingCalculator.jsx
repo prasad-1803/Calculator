@@ -3,12 +3,7 @@ import './Normal.css'; // Make sure this includes styles for both calculator and
 
 import { Link } from 'react-router-dom';
 
-
-
-
-
-
-const NormalCalculator= () => {
+const LongPollingCalculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
@@ -33,7 +28,13 @@ const NormalCalculator= () => {
     };
 
     useEffect(() => {
-        fetchLogs();
+        // Long polling setup
+        const intervalId = setInterval(() => {
+            fetchLogs();
+        }, 5000); // Adjust the interval as needed
+
+        // Cleanup interval on component unmount
+        return () => clearInterval(intervalId);
     }, []);
 
     const evaluateExpression = (expression) => {
@@ -96,7 +97,6 @@ const NormalCalculator= () => {
                 const result = await response.json();
                 alert(result.message);
             }
-            fetchLogs(); // Fetch logs after sending
         } catch (error) {
             console.error('Error sending log:', error);
         }
@@ -134,7 +134,7 @@ const NormalCalculator= () => {
 
     return (
         <div>
-         <h1>this is calculator without using any web protocols</h1>
+         <h1>this is calculator with longPolling</h1>
        
         <div className="container">
             <div className="calculator">
@@ -190,4 +190,4 @@ const NormalCalculator= () => {
     );
 };
 
-export default NormalCalculator;
+export default LongPollingCalculator;

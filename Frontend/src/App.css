@@ -7,13 +7,14 @@ body {
   background-color: #333;
   margin: 0;
   overflow: hidden; 
+  
 }
 
 .container {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px; 
-  width: 90%;
+  width: 100%;
   max-width: 1200px;
 }
 

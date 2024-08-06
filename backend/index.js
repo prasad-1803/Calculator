@@ -3,7 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const { Sequelize, DataTypes } = require('sequelize');
 const logger = require('./logger');
-const cors = require('cors');  
+const cors = require('cors');
+const WebSocket = require('ws');
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -34,13 +35,12 @@ const CalculatorLog = sequelize.define('calculator_log', {
     allowNull: false
   }
 }, {
-  timestamps: false, 
-  tableName: 'calculator_logs' 
+  timestamps: false,
+  tableName: 'calculator_logs'
 });
 
-
 app.use(bodyParser.json());
-app.use(cors());  
+app.use(cors());
 
 // Middleware for logging requests
 app.use((req, res, next) => {
@@ -64,6 +64,12 @@ app.post('/api/logs', async (req, res) => {
     const log = await CalculatorLog.create({ expression, is_valid, output });
     if (is_valid) {
       res.status(200).json({ result: output });
+      // Notify WebSocket clients of new data
+      wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'NEW_LOG', data: log }));
+        }
+      });
     } else {
       res.status(400).json({ message: 'Expression is invalid' });
     }
@@ -84,15 +90,61 @@ app.get('/api/logs', async (req, res) => {
   }
 });
 
+// Long Polling endpoint
+app.get('/api/logs/long-polling', async (req, res) => {
+  const { lastId } = req.query;
+  const lastIdNum = parseInt(lastId, 10) || 0;
+
+  const fetchLogs = async () => {
+    try {
+      const newLogs = await CalculatorLog.findAll({
+        where: { id: { [Sequelize.Op.gt]: lastIdNum } },
+        order: [['created_on', 'ASC']]
+      });
+      if (newLogs.length > 0) {
+        res.json(newLogs);
+      } else {
+        setTimeout(fetchLogs, 1000); // Check again in 1 second
+      }
+    } catch (error) {
+      logger.error('Error in long polling', { error });
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  };
+
+  fetchLogs();
+});
+
+// WebSocket setup
+const wss = new WebSocket.Server({ noServer: true });
+
+app.server = app.listen(port, () => {
+  logger.info(`Server running on http://localhost:${port}`);
+});
+
+app.server.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request);
+    logger.info('WebSocket connection established');
+  });
+});
+
+wss.on('connection', (ws) => {
+  logger.info('WebSocket connection established');
+  ws.on('message', (message) => {
+    logger.info('Received WebSocket message', { message });
+  });
+  ws.on('close', () => {
+    logger.info('WebSocket connection closed');
+  });
+});
+
 // Test database connection
 sequelize.authenticate()
   .then(() => {
     logger.info('Database connection has been established successfully.');
-    app.listen(port, () => {
-      logger.info(`Server running on http://localhost:${port}`);
-    });
   })
   .catch(err => {
     logger.error('Unable to connect to the database:', err);
-    process.exit(1);  
+    process.exit(1);
   });
