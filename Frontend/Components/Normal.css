@@ -1,3 +1,4 @@
+/* Container */
 .container {
     display: flex;
     flex-direction: column;
@@ -5,14 +6,17 @@
     padding: 20px;
 }
 
+/* Calculator Styles */
 .calculator {
     background-color: #000;
     border-radius: 20px;
     padding: 20px;
-    width: 350px;
+    width: 100%;
+    max-width: 350px; /* Ensure the calculator doesn’t exceed 350px on larger screens */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
+/* Calculator Display */
 .calculator__display {
     background-color: #000;
     border-radius: 10px;
@@ -21,6 +25,7 @@
     text-align: right;
 }
 
+/* Calculator Input */
 .calculator__input {
     font-size: 2em;
     margin-bottom: 10px;
@@ -33,18 +38,21 @@
     caret-color: #005fef;
 }
 
+/* Calculator Output */
 .calculator__output {
     font-size: 1.5em;
     color: #636262;
-    font-weight: 300; 
+    font-weight: 300;
 }
 
+/* Calculator Keys */
 .calculator__keys {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 15px;
 }
 
+/* Individual Calculator Key */
 .calculator__key {
     background-color: #333;
     border: none;
@@ -53,7 +61,7 @@
     font-size: 1.5em;
     color: #fff;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s; 
+    transition: background-color 0.3s, transform 0.1s;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -61,14 +69,16 @@
     text-align: center;
 }
 
+/* Key Hover and Active States */
 .calculator__key:hover {
     background-color: #555;
 }
 
 .calculator__key:active {
-    transform: scale(0.95); 
+    transform: scale(0.95);
 }
 
+/* Equals Key Specific Styles */
 .calculator__key--equals {
     background-color: #005fef;
     grid-column: span 1;
@@ -78,16 +88,19 @@
     background-color: #004bb5;
 }
 
+/* Logs Section */
 .logs {
     background-color: #000;
     border-radius: 20px;
     padding: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    width: 100vh;
-    max-height: 100vh;
+    width: 100%;
+    max-width: 100vw; /* Make sure it doesn’t exceed viewport width */
+    max-height: 100vh; /* Ensure it fits within the viewport height */
     overflow-y: auto;
 }
 
+/* Logs Table */
 .logs__table {
     width: 100%;
     border-collapse: collapse;
@@ -107,46 +120,43 @@
     background-color: #444;
 }
 
+/* Responsive Styles */
 @media screen and (max-width: 768px) {
     .calculator {
         width: 90%;
-        padding: 10px;
+        padding: 15px;
     }
 
     .calculator__input {
-        font-size: 1.5em;
-        padding: 10px;
+        font-size: 1.8em;
     }
 
     .calculator__output {
-        font-size: 1.2em;
-        padding: 10px;
+        font-size: 1.4em;
     }
 
     .calculator__key {
-        padding: 12px;
-        font-size: 1.2em;
+        padding: 14px;
+        font-size: 1.3em;
     }
 }
 
 @media screen and (max-width: 480px) {
     .calculator {
         width: 100%;
-        padding: 5px;
+        padding: 10px;
     }
 
     .calculator__input {
-        font-size: 1.2em;
-        padding: 5px;
+        font-size: 1.5em;
     }
 
     .calculator__output {
-        font-size: 1em;
-        padding: 5px;
+        font-size: 1.2em;
     }
 
     .calculator__key {
-        padding: 10px;
-        font-size: 1em;
+        padding: 12px;
+        font-size: 1.2em;
     }
 }
