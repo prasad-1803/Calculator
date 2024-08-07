@@ -1,52 +1,49 @@
-import React, { useState, useEffect } from 'react';
-import './Normal.css'; // Ensure this includes styles for both calculator and logs
+import React, { useState, useEffect, useRef } from 'react';
+import './Normal.css';
 
 const WebSocketCalculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
-    const ws = React.useRef(null);
+    const ws = useRef(null);
+    console.log("logs:",logs);
 
-    // Set up WebSocket connection
     useEffect(() => {
-        // Initialize WebSocket connection
-        ws.current = new WebSocket('ws://localhost:3000/ws');
+        ws.current = new WebSocket('ws://localhost:3000');
 
-        // Handle WebSocket open event
         ws.current.onopen = () => {
             console.log('WebSocket connection established');
         };
 
-        // Handle incoming messages from WebSocket
         ws.current.onmessage = (event) => {
-            const message = JSON.parse(event.data);
+            try {
+                const message = JSON.parse(event.data);
+                console.log('Raw WebSocket message:', event.data);
 
-            if (message.type === 'NEW_LOG') {
-                // Log the incoming message for debugging
-                console.log('New log received:', message.data);
+                if (message.type === 'LATEST_LOGS') {
+                    console.log('New log received:', message.data);
 
-                // Update logs state with new log
-                setLogs((prevLogs) => {
-                    const updatedLogs = [message.data, ...prevLogs];
-                    console.log('Updated logs:', updatedLogs); // Log the updated logs state
-                    return updatedLogs;
-                });
+                    setLogs(message.data);
+                } else {
+                    console.warn('Unexpected message type:', message.type);
+                }
+            } catch (e) {
+                console.error('Error parsing WebSocket message:', e);
             }
         };
 
-        // Handle WebSocket error event
         ws.current.onerror = (error) => {
             console.error('WebSocket error:', error);
         };
 
-        // Handle WebSocket close event
         ws.current.onclose = () => {
             console.log('WebSocket connection closed');
         };
 
-        // Clean up WebSocket connection on component unmount
         return () => {
-            ws.current.close();
+            if (ws.current) {
+                ws.current.close();
+            }
         };
     }, []);
 
@@ -76,6 +73,11 @@ const WebSocketCalculator = () => {
 
     const handleInput = (buttonText) => {
         let currentValue = inputValue;
+
+        if (typeof currentValue !== 'string') {
+            currentValue = '';
+        }
+
         const operatorRegex = /[\+\-×÷]/;
         currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
 
@@ -89,7 +91,7 @@ const WebSocketCalculator = () => {
             setInputValue(currentValue + buttonText);
         }
 
-        const result = evaluateExpression(inputValue + buttonText);
+        const result = evaluateExpression(currentValue + buttonText);
         setResult(result);
     };
 
@@ -113,12 +115,19 @@ const WebSocketCalculator = () => {
     };
 
     const handleButtonClick = (buttonText) => {
+        const stringInputValue = String(inputValue);
+        if (typeof inputValue !== 'string') {
+            console.error('Unexpected type for inputValue:', inputValue);
+            return;
+        }
+    
         if (buttonText === 'AC') {
             setInputValue('');
             setResult('');
         } else if (buttonText === '⌫') {
-            setInputValue(inputValue.slice(0, -1));
-            const result = evaluateExpression(inputValue.slice(0, -1));
+            const updatedInput = inputValue.slice(0, -1);
+            setInputValue(updatedInput);
+            const result = evaluateExpression(updatedInput);
             setResult(result);
         } else if (buttonText === '=') {
             const expression = inputValue
@@ -182,15 +191,21 @@ const WebSocketCalculator = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {logs.map(log => (
-                                <tr key={log.id}>
-                                    <td>{log.id}</td>
-                                    <td>{log.expression}</td>
-                                    <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                    <td>{log.output || 'N/A'}</td>
-                                    <td>{new Date(log.created_on).toLocaleString()}</td>
+                            {logs.length > 0 ? (
+                                logs.map((log, index) => (
+                                    <tr key={log.id || index}>
+                                        <td>{log.id || index}</td>
+                                        <td>{log.expression}</td>
+                                        <td>{log.is_valid ? 'Yes' : 'No'}</td>
+                                        <td>{log.output || 'N/A'}</td>
+                                        <td>{new Date(log.created_on).toLocaleString()}</td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan="5">No logs available</td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>

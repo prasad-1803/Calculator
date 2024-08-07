@@ -132,6 +132,7 @@ app.get('/api/logs/long-polling', async (req, res) => {
 
 
 // WebSocket setup
+// WebSocket setup
 const wss = new WebSocket.Server({ noServer: true });
 
 app.server = app.listen(port, () => {
@@ -147,20 +148,21 @@ app.server.on('upgrade', (request, socket, head) => {
 
 wss.on('connection', (ws) => {
   logger.info('WebSocket connection established');
-  ws.on('message', (message) => {
-    logger.info('Received WebSocket message', { message });
-  });
+
+  // Start periodic updates
+  const intervalId = setInterval(async () => {
+    try {
+      const latestLogs = await CalculatorLog.findAll({ limit: 10, order: [['created_on', 'DESC']] });
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'LATEST_LOGS', data: latestLogs }));
+      }
+    } catch (error) {
+      logger.error('Error fetching and sending latest logs', { error });
+    }
+  }, 5000); // Adjust the interval as needed (e.g., every 5 seconds)
+
   ws.on('close', () => {
     logger.info('WebSocket connection closed');
+    clearInterval(intervalId); // Clear the interval when the connection is closed
   });
 });
-
-// Test database connection
-sequelize.authenticate()
-  .then(() => {
-    logger.info('Database connection has been established successfully.');
-  })
-  .catch(err => {
-    logger.error('Unable to connect to the database:', err);
-    process.exit(1);
-  });

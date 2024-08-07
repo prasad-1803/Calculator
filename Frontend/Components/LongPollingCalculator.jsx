@@ -7,7 +7,6 @@ const LongPollingCalculator = () => {
     const [lastId, setLastId] = useState(0);
 
     const fetchLogs = async () => {
-        console.log("1");
         
         
         try {
