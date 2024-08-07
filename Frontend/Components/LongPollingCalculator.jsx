@@ -7,7 +7,8 @@ const LongPollingCalculator = () => {
     const [lastId, setLastId] = useState(0);
 
     const fetchLogs = async () => {
-        console.log("Fetching logs...");
+        console.log("1");
+        
         
         try {
             const response = await fetch(`http://localhost:3000/api/logs/long-polling?lastId=${lastId}`, {
@@ -17,37 +18,32 @@ const LongPollingCalculator = () => {
                     'Content-Type': 'application/json'
                 }
             });
-    
+
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-    
+
             const newLogs = await response.json();
+            console.log(newLogs);
             if (newLogs.length > 0) {
                 // Ensure uniqueness of logs
                 setLogs(prevLogs => {
-                    const existingLogsMap = new Map(prevLogs.map(log => [log.id, log]));
-                    newLogs.forEach(log => {
-                        // Update log if it's new
-                        if (!existingLogsMap.has(log.id)) {
-                            existingLogsMap.set(log.id, log);
-                        }
-                    });
-                    return Array.from(existingLogsMap.values());
+                    const newLogsMap = new Map(prevLogs.map(log => [log.id, log]));
+                    newLogs.forEach(log => newLogsMap.set(log.id, log));
+                    return Array.from(newLogsMap.values());
                 });
-    
-                // Update lastId to the ID of the latest log
-                setLastId(newLogs[newLogs.length - 1].id);
+                setLastId(newLogs[0].id);
             }
-    
-           
-    
+        
+               
+
+           // Continue long polling
         } catch (error) {
             console.error('Error fetching logs:', error);
-          
+           
         }
     };
-    
+
     useEffect(() => {
         fetchLogs(); // Start long polling when the component mounts
     }, [lastId]);
