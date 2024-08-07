@@ -1,0 +1,53 @@
+.home-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width:100%;
+    background-color: #333;
+    color: #f4f4f4;
+    padding: 20px;
+    margin: 0px;
+  }
+  
+  .home-page h1 {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .home-page p {
+    font-size: 1.2rem;
+    margin-bottom: 2rem;
+    text-align: center;
+  }
+  
+  .protocols {
+    width: 100%;
+    max-width: 800px;
+  }
+  
+  .protocol {
+    margin-bottom: 2rem;
+  }
+  
+  .protocol h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .protocol p {
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+ 
+  .protocol a {
+    text-decoration: none;
+    color: #007bff;
+  }
+  
+  .protocol a:hover {
+    text-decoration: underline;
+  }
+  

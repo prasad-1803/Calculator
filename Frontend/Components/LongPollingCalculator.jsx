@@ -1,41 +1,56 @@
 import React, { useState, useEffect } from 'react';
-import './Normal.css'; // Make sure this includes styles for both calculator and logs
-
-import { Link } from 'react-router-dom';
 
 const LongPollingCalculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
+    const [lastId, setLastId] = useState(0);
 
-    // Fetch logs from the server
     const fetchLogs = async () => {
+        console.log("Fetching logs...");
+        
         try {
-            const response = await fetch('http://localhost:3000/api/logs', {
+            const response = await fetch(`http://localhost:3000/api/logs/long-polling?lastId=${lastId}`, {
                 method: 'GET',
                 headers: {
-                    'Cache-Control': 'no-cache'
+                    'Cache-Control': 'no-cache',
+                    'Content-Type': 'application/json'
                 }
             });
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-            const logs = await response.json();
-            setLogs(logs);
+    
+            const newLogs = await response.json();
+            if (newLogs.length > 0) {
+                // Ensure uniqueness of logs
+                setLogs(prevLogs => {
+                    const existingLogsMap = new Map(prevLogs.map(log => [log.id, log]));
+                    newLogs.forEach(log => {
+                        // Update log if it's new
+                        if (!existingLogsMap.has(log.id)) {
+                            existingLogsMap.set(log.id, log);
+                        }
+                    });
+                    return Array.from(existingLogsMap.values());
+                });
+    
+                // Update lastId to the ID of the latest log
+                setLastId(newLogs[newLogs.length - 1].id);
+            }
+    
+           
+    
         } catch (error) {
             console.error('Error fetching logs:', error);
+          
         }
     };
-
+    
     useEffect(() => {
-        // Long polling setup
-        const intervalId = setInterval(() => {
-            fetchLogs();
-        }, 5000); // Adjust the interval as needed
-
-        // Cleanup interval on component unmount
-        return () => clearInterval(intervalId);
-    }, []);
+        fetchLogs(); // Start long polling when the component mounts
+    }, [lastId]);
 
     const evaluateExpression = (expression) => {
         expression = expression
@@ -134,58 +149,57 @@ const LongPollingCalculator = () => {
 
     return (
         <div>
-         <h1>this is calculator with longPolling</h1>
-       
-        <div className="container">
-            <div className="calculator">
-                <div className="calculator__display">
-                    <div className="calculator__content">
-                        <input
-                            type="text"
-                            className="calculator__input"
-                            value={inputValue}
-                            readOnly
-                        />
-                        <div className="calculator__output">{result}</div>
+            <h1>This is a Calculator with Long Polling</h1>
+            <div className="container">
+                <div className="calculator">
+                    <div className="calculator__display">
+                        <div className="calculator__content">
+                            <input
+                                type="text"
+                                className="calculator__input"
+                                value={inputValue}
+                                readOnly
+                            />
+                            <div className="calculator__output">{result}</div>
+                        </div>
+                    </div>
+                    <div className="calculator__keys">
+                        {['AC', '%', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', '.', '='].map(key => (
+                            <button
+                                key={key}
+                                className={`calculator__key ${key === '=' ? 'calculator__key--equals' : ''}`}
+                                onClick={() => handleButtonClick(key)}
+                            >
+                                {key}
+                            </button>
+                        ))}
                     </div>
                 </div>
-                <div className="calculator__keys">
-                    {['AC', '%', '⌫', '÷', '7', '8', '9', '×', '4', '5', '6', '-', '1', '2', '3', '+', '00', '0', '.', '='].map(key => (
-                        <button
-                            key={key}
-                            className={`calculator__key ${key === '=' ? 'calculator__key--equals' : ''}`}
-                            onClick={() => handleButtonClick(key)}
-                        >
-                            {key}
-                        </button>
-                    ))}
+                <div className="logs">
+                    <table className="logs__table">
+                        <thead className="logs__table-head">
+                            <tr>
+                                <th>ID</th>
+                                <th>Expression</th>
+                                <th>Valid</th>
+                                <th>Output</th>
+                                <th>Created On</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {logs.map(log => (
+                                <tr key={log.id}>
+                                    <td>{log.id}</td>
+                                    <td>{log.expression}</td>
+                                    <td>{log.is_valid ? 'Yes' : 'No'}</td>
+                                    <td>{log.output || 'N/A'}</td>
+                                    <td>{new Date(log.created_on).toLocaleString()}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
-            <div className="logs">
-                <table className="logs__table">
-                    <thead className="logs__table-head">
-                        <tr>
-                            <th>ID</th>
-                            <th>Expression</th>
-                            <th>Valid</th>
-                            <th>Output</th>
-                            <th>Created On</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {logs.map(log => (
-                            <tr key={log.id}>
-                                <td>{log.id}</td>
-                                <td>{log.expression}</td>
-                                <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                <td>{log.output || 'N/A'}</td>
-                                <td>{new Date(log.created_on).toLocaleString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
         </div>
     );
 };

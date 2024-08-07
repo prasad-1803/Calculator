@@ -95,16 +95,25 @@ app.get('/api/logs/long-polling', async (req, res) => {
   const { lastId } = req.query;
   const lastIdNum = parseInt(lastId, 10) || 0;
 
-  const fetchLogs = async () => {
+  // Set a timeout for polling interval
+  const POLL_INTERVAL = 5000; // 1 second, adjust as needed
+
+  const checkForNewLogs = async () => {
     try {
+      // Query for new logs since the lastId
       const newLogs = await CalculatorLog.findAll({
         where: { id: { [Sequelize.Op.gt]: lastIdNum } },
-        order: [['created_on', 'ASC']]
+        limit:10,
+        order: [['created_on', 'DESC']],
+    
+      
       });
+
       if (newLogs.length > 0) {
-        res.json(newLogs);
+        res.json(newLogs); // Respond with new logs
       } else {
-        setTimeout(fetchLogs, 1000); // Check again in 1 second
+        // No new logs, set a timeout and check again
+        setTimeout(checkForNewLogs, POLL_INTERVAL);
       }
     } catch (error) {
       logger.error('Error in long polling', { error });
@@ -112,8 +121,15 @@ app.get('/api/logs/long-polling', async (req, res) => {
     }
   };
 
-  fetchLogs();
+  // Start checking for new logs
+  checkForNewLogs();
+
+  // Optional: Set a timeout for the client to cancel the request
+  req.on('close', () => {
+    logger.info('Client disconnected from long polling');
+  });
 });
+
 
 // WebSocket setup
 const wss = new WebSocket.Server({ noServer: true });

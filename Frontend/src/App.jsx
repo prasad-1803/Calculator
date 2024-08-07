@@ -1,23 +1,35 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
 import ShortPollingCalculator from '../Components/ShortPollingCalculator';
 import LongPollingCalculator from '../Components/LongPollingCalculator';
 import WebSocketCalculator from '../Components/WebSocketCalculator';
-import Calculator from '../Components/NormalCalculator';
+import Home from '../Components/Home';
 import Header from '../Components/Header';
-import "./App.css"
+import "./App.css";
 
-function App() {
+const AppContent = () => {
+  const location = useLocation();
+
+
+  const showHeader = location.pathname !== '/';
+
   return (
-    <Router>
-    <Header/>
+    <>
+      {showHeader && <Header />}
       <Routes>
-
-      <Route path="/" element={<Calculator/>} />
+        <Route path="/" element={<Home />} />
         <Route path="/calculator/short-polling" element={<ShortPollingCalculator />} />
         <Route path="/calculator/long-polling" element={<LongPollingCalculator />} />
         <Route path="/calculator/web-socket" element={<WebSocketCalculator />} />
       </Routes>
+    </>
+  );
+};
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
     </Router>
   );
 }
