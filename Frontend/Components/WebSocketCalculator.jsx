@@ -6,46 +6,50 @@ const WebSocketCalculator = () => {
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
     const ws = useRef(null);
-    console.log("logs:",logs);
 
     useEffect(() => {
         ws.current = new WebSocket('ws://localhost:3000');
-
+      
         ws.current.onopen = () => {
-            console.log('WebSocket connection established');
+          console.log('WebSocket connection established');
         };
-
+      
         ws.current.onmessage = (event) => {
-            try {
-                const message = JSON.parse(event.data);
-                console.log('Raw WebSocket message:', event.data);
-
-                if (message.type === 'LATEST_LOGS') {
-                    console.log('New log received:', message.data);
-
-                    setLogs(message.data);
-                } else {
-                    console.warn('Unexpected message type:', message.type);
-                }
-            } catch (e) {
-                console.error('Error parsing WebSocket message:', e);
+          try {
+            const message = JSON.parse(event.data);
+            console.log('Raw WebSocket message:', event.data);
+      
+            if (message.type === 'LATEST_LOGS') {
+              console.log('New log received:', message.data);
+              setLogs(message.data);
+            } else if (message.type === 'UPDATE') {
+              // Handle real-time input changes from other clients
+              if (message.data.inputValue !== undefined) {
+                setInputValue(message.data.inputValue);
+                setResult(message.data.result);
+              }
+            } else {
+              console.warn('Unexpected message type:', message.type);
             }
+          } catch (e) {
+            console.error('Error parsing WebSocket message:', e);
+          }
         };
-
+      
         ws.current.onerror = (error) => {
-            console.error('WebSocket error:', error);
+          console.error('WebSocket error:', error);
         };
-
+      
         ws.current.onclose = () => {
-            console.log('WebSocket connection closed');
+          console.log('WebSocket connection closed');
         };
-
+      
         return () => {
-            if (ws.current) {
-                ws.current.close();
-            }
+          if (ws.current) {
+            ws.current.close();
+          }
         };
-    }, []);
+      }, []);
 
     const evaluateExpression = (expression) => {
         expression = expression
@@ -93,44 +97,53 @@ const WebSocketCalculator = () => {
 
         const result = evaluateExpression(currentValue + buttonText);
         setResult(result);
-    };
 
-    const sendLog = (expression, isValid, output) => {
-        if (!expression) {
-            alert('Expression is empty');
-            return;
-        }
-        const logMessage = JSON.stringify({
-            type: 'log',
-            expression,
-            is_valid: isValid,
-            output
-        });
-
+        // Send real-time updates to the server
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-            ws.current.send(logMessage);
-        } else {
-            console.error('WebSocket is not connected');
+            ws.current.send(JSON.stringify({
+                type: 'UPDATE',
+                data: {
+                    inputValue: currentValue + buttonText,
+                    result
+                }
+            }));
         }
     };
 
     const handleButtonClick = (buttonText) => {
-        const stringInputValue = String(inputValue);
-        if (typeof inputValue !== 'string') {
-            console.error('Unexpected type for inputValue:', inputValue);
-            return;
-        }
+        const stringInputValue = String(inputValue); // Ensure it's a string
     
         if (buttonText === 'AC') {
             setInputValue('');
             setResult('');
+            // Send real-time updates to the server
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.send(JSON.stringify({
+                    type: 'UPDATE',
+                    data: {
+                        inputValue: '',
+                        result: ''
+                    }
+                }));
+            }
         } else if (buttonText === '⌫') {
-            const updatedInput = inputValue.slice(0, -1);
+            const updatedInput = stringInputValue.slice(0, -1);
             setInputValue(updatedInput);
             const result = evaluateExpression(updatedInput);
             setResult(result);
+
+            // Send real-time updates to the server
+            if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+                ws.current.send(JSON.stringify({
+                    type: 'UPDATE',
+                    data: {
+                        inputValue: updatedInput,
+                        result
+                    }
+                }));
+            }
         } else if (buttonText === '=') {
-            const expression = inputValue
+            const expression = stringInputValue
                 .replace(/×/g, '*')
                 .replace(/÷/g, '/')
                 .replace(/%/g, '/100');
@@ -150,6 +163,26 @@ const WebSocketCalculator = () => {
             handleInput(buttonText);
         }
     };
+
+    const sendLog = (expression, isValid, output) => {
+        if (!expression) {
+          alert('Expression is empty');
+          return;
+        }
+        const logMessage = JSON.stringify({
+          type: 'log',
+          expression,
+          is_valid: isValid,
+          output
+        });
+      
+        if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+          ws.current.send(logMessage);
+        } else {
+          console.error('WebSocket is not connected');
+        }
+      };
+      
 
     return (
         <div>

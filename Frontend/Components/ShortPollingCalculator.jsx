@@ -9,7 +9,7 @@ const ShortPollingCalculator = () => {
     // Fetch logs from the server
     const fetchLogs = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/logs', {
+            const response = await fetch('http://localhost:3000/api/getlogs', {
                 method: 'GET',
                 headers: {
                     'Cache-Control': 'no-cache'
@@ -87,7 +87,7 @@ const ShortPollingCalculator = () => {
             return;
         }
         try {
-            const response = await fetch('http://localhost:3000/api/logs', {
+            const response = await fetch('http://localhost:3000/api/post', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
