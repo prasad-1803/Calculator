@@ -3,9 +3,10 @@ const express = require('express');
 const http = require('http');
 const WebSocket = require('ws');
 const { Sequelize, DataTypes } = require('sequelize');
-const logger = require('./logger'); // Assuming you have a logger setup
+const logger = require('./logger');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const { Readable } = require('stream');
 
 const app = express();
 const server = http.createServer(app);
@@ -104,43 +105,87 @@ app.get('/api/getlogs', async (req, res) => {
   }
 });
 
-// Long Polling endpoint
-app.get('/api/logs/long-polling', async (req, res) => {
-  const { lastId } = req.query;
-  const lastIdNum = parseInt(lastId, 10) || 0;
+// Long Polling endpoint using readable stream
 
-  // Set a timeout for polling interval
-  const POLL_INTERVAL = 5000; // 5 seconds, adjust as needed
 
-  const checkForNewLogs = async () => {
-    try {
-      // Query for new logs since the lastId
-      const newLogs = await CalculatorLog.findAll({
-        where: { id: { [Sequelize.Op.gt]: lastIdNum } },
-        limit: 10,
-        order: [['created_on', 'DESC']]
-      });
+app.post('/api/logs/long-polling', async (req, res) => {
+  const { expression, is_valid, output } = req.body;
 
-      if (newLogs.length > 0) {
-        res.json(newLogs); // Respond with new logs
-      } else {
-        // No new logs, set a timeout and check again
-        setTimeout(checkForNewLogs, POLL_INTERVAL);
+  // Validate the incoming data
+  if (typeof expression !== 'string' || expression.trim() === '') {
+    return res.status(400).json({ message: 'Expression is required and must be a non-empty string' });
+  }
+  if (typeof is_valid !== 'boolean') {
+    return res.status(400).json({ message: 'Expression validity must be a boolean' });
+  }
+
+  // Post the new log entry to the database
+  try {
+    await CalculatorLog.create({ expression, is_valid, output });
+
+    // Set headers for streaming
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    // Create a readable stream
+    const logStream = new Readable({
+      objectMode: true,
+      read() {} // No need to implement this function since we push data manually
+    });
+
+    // Fetch and stream logs
+    const fetchAndStreamLogs = async () => {
+      try {
+        // Fetch the latest logs from the database
+        const newLogs = await CalculatorLog.findAll({
+          limit: 5,
+          order: [['created_on', 'DESC']]
+        });
+
+        if (newLogs.length > 0) {
+          let index = 0;
+
+          // Function to send logs with a delay
+          const sendLogs = () => {
+            if (index < newLogs.length) {
+              logStream.push(JSON.stringify(newLogs[index]));
+              index += 1;
+              setTimeout(sendLogs, 3000); // Send next log after 1 second
+            } else {
+              logStream.push(null); // End the stream
+            }
+          };
+
+          sendLogs();
+        } else {
+          // If no new logs, wait and check again
+          setTimeout(fetchAndStreamLogs, 3000); // Check every 3 seconds
+        }
+      } catch (error) {
+        console.error('Error fetching logs:', error);
+        logStream.destroy(error); // Destroy the stream on error
       }
-    } catch (error) {
-      logger.error('Error in long polling', { error });
-      res.status(500).json({ message: 'Internal Server Error' });
-    }
-  };
+    };
 
-  // Start checking for new logs
-  checkForNewLogs();
+    // Start fetching and streaming logs
+    fetchAndStreamLogs();
 
-  // Optional: Set a timeout for the client to cancel the request
-  req.on('close', () => {
-    logger.info('Client disconnected from long polling');
-  });
+    // Pipe the readable stream to the response
+    logStream.pipe(res);
+
+    // Handle client disconnect
+    req.on('close', () => {
+      console.log('Client disconnected from long polling');
+      logStream.destroy(); // Destroy the stream if the client disconnects
+    });
+
+  } catch (error) {
+    console.error('Error saving log:', error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
 });
+
 
 // WebSocket setup
 const clients = new Set();
@@ -169,24 +214,24 @@ wss.on('connection', async (ws) => {
   ws.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
-  
+
       if (data.type === 'log') {
         const { expression, is_valid, output } = data;
-  
+
         // Ensure data properties are defined
         if (!expression || is_valid === undefined) {
           throw new Error('Invalid data format');
         }
-  
+
         // Save the log to the database
         const log = await CalculatorLog.create({ expression, is_valid, output });
-  
+
         // Fetch the updated logs from the database
         const latestLogs = await CalculatorLog.findAll({
           limit: 10,
           order: [['created_on', 'DESC']]
         });
-  
+
         // Broadcast the updated logs to all connected clients
         clients.forEach(client => {
           if (client.readyState === WebSocket.OPEN) {
@@ -225,6 +270,7 @@ wss.on('connection', async (ws) => {
 server.listen(process.env.PORT || 3000, () => {
   console.log(`Server is listening on port ${process.env.PORT || 3000}`);
 });
+
 // Test database connection
 sequelize.authenticate()
   .then(() => {

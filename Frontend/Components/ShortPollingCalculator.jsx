@@ -98,7 +98,7 @@ const ShortPollingCalculator = () => {
                 const result = await response.json();
                 alert(result.message);
             }
-            // No need to fetch logs here, polling will handle it
+    
         } catch (error) {
             console.error('Error sending log:', error);
         }
@@ -136,7 +136,7 @@ const ShortPollingCalculator = () => {
 
     return (
         <div>
-            <h1>This is a Calculator with Short Polling</h1>
+            <h1> Calculator with Short Polling</h1>
             <div className="container">
                 <div className="calculator">
                     <div className="calculator__display">

@@ -1,53 +1,69 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 
 const LongPollingCalculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
-    const [lastId, setLastId] = useState(0);
+    const [evaluationCount, setEvaluationCount] = useState(0);
 
-    const fetchLogs = async () => {
-        
-        
+    const fetchLogs = useCallback(async () => {
+        console.log('Fetching logs...'); 
         try {
-            const response = await fetch(`http://localhost:3000/api/logs/long-polling?lastId=${lastId}`, {
-                method: 'GET',
+            
+            const payload = {
+                expression: inputValue,
+                is_valid: result !== 'Invalid Expression',
+                output: result !== 'Invalid Expression' ? parseFloat(result) : null
+            };
+    
+            const response = await fetch('http://localhost:3000/api/logs/long-polling', {
+                method: 'POST',
                 headers: {
                     'Cache-Control': 'no-cache',
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(payload)
             });
-
+    
             if (!response.ok) {
                 throw new Error(`HTTP error! Status: ${response.status}`);
             }
-
-            const newLogs = await response.json();
-            console.log(newLogs);
-            if (newLogs.length > 0) {
-                // Ensure uniqueness of logs
-                setLogs(prevLogs => {
-                    const newLogsMap = new Map(prevLogs.map(log => [log.id, log]));
-                    newLogs.forEach(log => newLogsMap.set(log.id, log));
-                    return Array.from(newLogsMap.values());
+    
+            const reader = response.body.getReader();
+            const decoder = new TextDecoder();
+            let buffer = '';
+    
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+    
+                buffer += decoder.decode(value, { stream: true });
+                const logsArray = buffer.split('\n').filter(line => line.trim() !== '');
+                logsArray.forEach(log => {
+                    console.log('Raw log data:', log); 
+                    try {
+                        const parsedLog = JSON.parse(log);
+                        console.log('Parsed log:', parsedLog); 
+                        setLogs(prevLogs => [...prevLogs, parsedLog]);
+                    } catch (e) {
+                        console.error('Error parsing log:', e);
+                    }
                 });
-                setLastId(newLogs[0].id);
+    
+                buffer = '';
             }
-        
-               
-
-           // Continue long polling
         } catch (error) {
             console.error('Error fetching logs:', error);
-           
         }
-    };
-
-    useEffect(() => {
-        fetchLogs(); // Start long polling when the component mounts
-    }, [lastId]);
+    }, [inputValue, result]);
+    
 
     const evaluateExpression = (expression) => {
+        if (!expression.trim()) {
+            console.log('Empty expression detected');
+            return 'Invalid Expression'; 
+        }
+
         expression = expression
             .replace(/×/g, '*')
             .replace(/÷/g, '/')
@@ -56,69 +72,36 @@ const LongPollingCalculator = () => {
         const isValid = /^[\d+\-*/().\s]*$/.test(expression);
         const endsWithOperator = /[\d)]$/.test(expression);
 
-        if (isValid && endsWithOperator && expression.length > 0) {
+        console.log('Evaluating expression:', expression); 
+
+        if (isValid && endsWithOperator) {
             try {
                 const result = eval(expression);
                 if (isNaN(result) || !isFinite(result)) {
                     throw new Error('Invalid Result');
                 }
+                console.log('Evaluation result:', result); 
                 return result;
             } catch (e) {
+                console.error('Error during evaluation:', e);
                 return 'Invalid Expression';
             }
         } else {
+            console.log('Invalid expression format');
             return 'Invalid Expression';
         }
     };
 
-    const handleInput = (buttonText) => {
-        let currentValue = inputValue;
-        const operatorRegex = /[\+\-×÷]/;
-        currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
-
-        if (['+', '-', '×', '÷'].includes(buttonText)) {
-            if (operatorRegex.test(currentValue.slice(-1))) {
-                setInputValue(currentValue.slice(0, -1) + buttonText);
-            } else {
-                setInputValue(currentValue + buttonText);
-            }
-        } else {
-            setInputValue(currentValue + buttonText);
-        }
-
-        const result = evaluateExpression(inputValue + buttonText);
-        setResult(result);
-    };
-
-    const sendLog = async (expression, isValid, output) => {
-        if (!expression) {
-            alert('Expression is empty');
-            return;
-        }
-        try {
-            const response = await fetch('http://localhost:3000/api/post', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ expression, is_valid: isValid, output })
-            });
-            if (!response.ok) {
-                const result = await response.json();
-                alert(result.message);
-            }
-        } catch (error) {
-            console.error('Error sending log:', error);
-        }
-    };
-
     const handleButtonClick = async (buttonText) => {
+        console.log('Button clicked:', buttonText); 
+
         if (buttonText === 'AC') {
             setInputValue('');
             setResult('');
         } else if (buttonText === '⌫') {
-            setInputValue(inputValue.slice(0, -1));
-            const result = evaluateExpression(inputValue.slice(0, -1));
+            const newValue = inputValue.slice(0, -1);
+            setInputValue(newValue);
+            const result = evaluateExpression(newValue);
             setResult(result);
         } else if (buttonText === '=') {
             const expression = inputValue
@@ -126,25 +109,33 @@ const LongPollingCalculator = () => {
                 .replace(/÷/g, '/')
                 .replace(/%/g, '/100');
 
+            console.log('Final expression for evaluation:', expression); 
+
             const result = evaluateExpression(expression);
 
             if (result === 'Invalid Expression') {
                 setResult('Invalid Expression');
-                await sendLog(expression, false, null);
                 alert('Invalid Expression');
             } else {
-                setInputValue(result);
+                setInputValue(result.toString());
                 setResult(result);
-                await sendLog(expression, true, result);
+
+                setEvaluationCount(prevCount => {
+                    const newCount = prevCount + 1;
+                    if (newCount % 5 === 0) {
+                        fetchLogs(); 
+                    }
+                    return newCount;
+                });
             }
         } else {
-            handleInput(buttonText);
+            setInputValue(prevInput => prevInput + buttonText);
         }
     };
 
     return (
         <div>
-            <h1>This is a Calculator with Long Polling</h1>
+            <h1>Calculator with Long Polling</h1>
             <div className="container">
                 <div className="calculator">
                     <div className="calculator__display">

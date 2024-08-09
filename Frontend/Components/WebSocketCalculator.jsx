@@ -98,7 +98,7 @@ const WebSocketCalculator = () => {
         const result = evaluateExpression(currentValue + buttonText);
         setResult(result);
 
-        // Send real-time updates to the server
+        
         if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({
                 type: 'UPDATE',
@@ -111,7 +111,7 @@ const WebSocketCalculator = () => {
     };
 
     const handleButtonClick = (buttonText) => {
-        const stringInputValue = String(inputValue); // Ensure it's a string
+        const stringInputValue = String(inputValue); 
     
         if (buttonText === 'AC') {
             setInputValue('');
@@ -186,7 +186,7 @@ const WebSocketCalculator = () => {
 
     return (
         <div>
-            <h1>This is the calculator with WebSocket</h1>
+            <h1>calculator with WebSocket</h1>
             <div className="container">
                 <div className="calculator">
                     <div className="calculator__display">
