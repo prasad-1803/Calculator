@@ -1,53 +1,69 @@
+/* Home Page */
 .home-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    height: 100%;
-    width:100%;
-    background-color: #fafafa;
-    color: #0d0d0e;
-    padding: 20px;
-    margin: 0px;
-  }
-  
-  .home-page h1 {
-    font-size: 2rem;
-    margin-bottom: 1rem;
-  }
-  
-  .home-page p {
-    font-size: 1.2rem;
-    margin-bottom: 2rem;
-    text-align: center;
-  }
-  
-  .protocols {
-    width: 100%;
-    max-width: 800px;
-  }
-  
-  .protocol {
-    margin-bottom: 2rem;
-  }
-  
-  .protocol h2 {
-    font-size: 1.5rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  .protocol p {
-    font-size: 1rem;
-    margin-bottom: 1rem;
-  }
-  
- 
-  .protocol a {
-    text-decoration: none;
-    color: #007bff;
-  }
-  
-  .protocol a:hover {
-    text-decoration: underline;
-  }
-  
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh; /* Full viewport height for better centering */
+  width: 100%;
+  background-color: #fafafa; /* Light background for a clean look */
+  color: #0d0d0e; /* Dark text for contrast */
+  padding: 20px;
+  margin: 0;
+  font-family: 'Arial', sans-serif; /* Modern font for readability */
+}
+
+/* Main Heading */
+.home-page h1 {
+  font-size: 2.5rem; /* Slightly larger for emphasis */
+  margin-bottom: 1rem;
+  font-weight: 600; /* Bold font for headings */
+  text-align: center;
+}
+
+/* Paragraphs */
+.home-page p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+  line-height: 1.6; /* Improve readability with line height */
+}
+
+/* Protocols Container */
+.protocols {
+  width: 100%;
+  max-width: 800px; /* Maximum width for content layout */
+  margin: 0 auto; /* Center align the container */
+}
+
+/* Protocol Section */
+.protocol {
+  margin-bottom: 2rem;
+}
+
+/* Subheadings in Protocols */
+.protocol h2 {
+  font-size: 1.75rem; /* Slightly larger for subheadings */
+  margin-bottom: 0.5rem;
+  font-weight: 500; /* Medium font weight for subheadings */
+  color: #333; /* Darker color for subheadings */
+}
+
+/* Paragraphs in Protocols */
+.protocol p {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  line-height: 1.5; /* Improve readability */
+}
+
+/* Links */
+.protocol a {
+  text-decoration: none;
+  color: #007bff; /* Bright blue color for links */
+  font-weight: 500; /* Medium font weight for links */
+}
+
+.protocol a:hover {
+  text-decoration: underline;
+  color: #0056b3; /* Darker blue for hover effect */
+}

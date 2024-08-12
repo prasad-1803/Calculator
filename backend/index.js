@@ -128,56 +128,41 @@ app.post('/api/logs/long-polling', async (req, res) => {
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    // Create a readable stream
-    const logStream = new Readable({
-      objectMode: true,
-      read() {} // No need to implement this function since we push data manually
-    });
-
-    // Fetch and stream logs
-    const fetchAndStreamLogs = async () => {
+    // Function to send logs to the client
+    const sendLogs = async () => {
       try {
         // Fetch the latest logs from the database
         const newLogs = await CalculatorLog.findAll({
           limit: 5,
           order: [['created_on', 'DESC']]
         });
-
+    
         if (newLogs.length > 0) {
-          let index = 0;
-
-          // Function to send logs with a delay
-          const sendLogs = () => {
-            if (index < newLogs.length) {
-              logStream.push(JSON.stringify(newLogs[index]));
-              index += 1;
-              setTimeout(sendLogs, 3000); // Send next log after 1 second
-            } else {
-              logStream.push(null); // End the stream
-            }
-          };
-
-          sendLogs();
+          for (let i = 0; i < newLogs.length; i++) {
+            // Send each log entry with a delay
+            res.write(JSON.stringify(newLogs[i]) + '\n');
+            // Wait for 3 seconds before sending the next log entry
+            await new Promise(resolve => setTimeout(resolve, 3000));
+          }
+          res.end(); // End the response after sending all logs
         } else {
-          // If no new logs, wait and check again
-          setTimeout(fetchAndStreamLogs, 3000); // Check every 3 seconds
+          // If no new logs, end the response
+          res.end(); // End the response if there are no logs
         }
       } catch (error) {
         console.error('Error fetching logs:', error);
-        logStream.destroy(error); // Destroy the stream on error
+        res.end(); // End the response on error
       }
     };
+    
 
-    // Start fetching and streaming logs
-    fetchAndStreamLogs();
-
-    // Pipe the readable stream to the response
-    logStream.pipe(res);
+    // Start sending logs
+    sendLogs();
 
     // Handle client disconnect
     req.on('close', () => {
       console.log('Client disconnected from long polling');
-      logStream.destroy(); // Destroy the stream if the client disconnects
+      res.end(); // End the response if the client disconnects
     });
 
   } catch (error) {
