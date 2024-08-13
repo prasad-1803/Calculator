@@ -1,11 +1,11 @@
 import React from 'react';
-import NormalCalculator from '../Components/NormalCalculator'; 
+import Calculator from '../Components/Calculator'; 
 import './App.css';
 
 const App = () => {
     return (
         <div className="container">
-            <NormalCalculator />
+            <Calculator />
         </div>
     );
 };

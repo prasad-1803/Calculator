@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import './Normal.css'; // Make sure this includes styles for both calculator and logs
+import './Calculator.css';
 
-const CombinedComponent = () => {
+const Calculator = () => {
     const [inputValue, setInputValue] = useState('');
     const [result, setResult] = useState('');
     const [logs, setLogs] = useState([]);
+    const [selectedLogs, setSelectedLogs] = useState(new Set());
+    const [currentPage, setCurrentPage] = useState(1);
+    const [rowsPerPage] = useState(10);
+    const [filter, setFilter] = useState({ column: '', value: '' });
 
     // Fetch logs from the server
     const fetchLogs = async () => {
@@ -125,6 +129,46 @@ const CombinedComponent = () => {
         }
     };
 
+    const handleSelectAll = (event) => {
+        const checked = event.target.checked;
+        if (checked) {
+            setSelectedLogs(new Set(logs.map(log => log.id)));
+        } else {
+            setSelectedLogs(new Set());
+        }
+    };
+
+    const handleRowSelect = (id) => {
+        setSelectedLogs(prev => {
+            const updated = new Set(prev);
+            if (updated.has(id)) {
+                updated.delete(id);
+            } else {
+                updated.add(id);
+            }
+            return updated;
+        });
+    };
+
+    const handleFilterChange = (column) => (event) => {
+        setFilter({ column, value: event.target.value });
+    };
+
+    const filteredLogs = logs.filter(log => {
+        if (!filter.column || !filter.value) return true;
+        const logValue = log[filter.column];
+        return logValue && logValue.toString().toLowerCase().includes(filter.value.toLowerCase());
+    });
+
+    const indexOfLastLog = currentPage * rowsPerPage;
+    const indexOfFirstLog = indexOfLastLog - rowsPerPage;
+    const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
+    const totalPages = Math.ceil(filteredLogs.length / rowsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     return (
         <div className="container">
             <div className="calculator">
@@ -155,16 +199,53 @@ const CombinedComponent = () => {
                 <table className="logs__table">
                     <thead className="logs__table-head">
                         <tr>
-                            <th>ID</th>
-                            <th>Expression</th>
-                            <th>Valid</th>
-                            <th>Output</th>
-                            <th>Created On</th>
+                            <th>
+                                <input
+                                    type="checkbox"
+                                    onChange={handleSelectAll}
+                                    checked={filteredLogs.length > 0 && selectedLogs.size === filteredLogs.length}
+                                />
+                            </th>
+                            <th>
+                                ID
+                                <span className="filter-icon" onClick={handleFilterChange('id')}>🔍</span>
+                            </th>
+                            <th>
+                                Expression
+                                <span className="filter-icon" onClick={handleFilterChange('expression')}>🔍</span>
+                            </th>
+                            <th>
+                                Valid
+                                <span className="filter-icon" onClick={handleFilterChange('is_valid')}>🔍</span>
+                            </th>
+                            <th>
+                                Output
+                                <span className="filter-icon" onClick={handleFilterChange('output')}>🔍</span>
+                            </th>
+                            <th>
+                                Created On
+                                <span className="filter-icon" onClick={handleFilterChange('created_on')}>🔍</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td><input type="text" onChange={handleFilterChange('id')} /></td>
+                            <td><input type="text" onChange={handleFilterChange('expression')} /></td>
+                            <td><input type="text" onChange={handleFilterChange('is_valid')} /></td>
+                            <td><input type="text" onChange={handleFilterChange('output')} /></td>
+                            <td><input type="text" onChange={handleFilterChange('created_on')} /></td>
                         </tr>
                     </thead>
                     <tbody>
-                        {logs.map(log => (
+                        {currentLogs.map(log => (
                             <tr key={log.id}>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLogs.has(log.id)}
+                                        onChange={() => handleRowSelect(log.id)}
+                                    />
+                                </td>
                                 <td>{log.id}</td>
                                 <td>{log.expression}</td>
                                 <td>{log.is_valid ? 'Yes' : 'No'}</td>
@@ -174,9 +255,20 @@ const CombinedComponent = () => {
                         ))}
                     </tbody>
                 </table>
+                <div className="pagination">
+                    {Array.from({ length: totalPages }, (_, index) => (
+                        <button
+                            key={index + 1}
+                            onClick={() => handlePageChange(index + 1)}
+                            className={currentPage === index + 1 ? 'active' : ''}
+                        >
+                            {index + 1}
+                        </button>
+                    ))}
+                </div>
             </div>
         </div>
     );
 };
 
-export default CombinedComponent;
+export default Calculator;
