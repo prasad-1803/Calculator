@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import './Calculator.css';
 
 const Calculator = () => {
@@ -9,6 +9,8 @@ const Calculator = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage] = useState(10);
     const [filter, setFilter] = useState({ column: '', value: '' });
+    const [inputVisibility, setInputVisibility] = useState({}); // To manage filter input visibility
+    const filterRef = useRef(null);
 
     // Fetch logs from the server
     const fetchLogs = async () => {
@@ -31,6 +33,19 @@ const Calculator = () => {
 
     useEffect(() => {
         fetchLogs();
+    }, []);
+
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (filterRef.current && !filterRef.current.contains(event.target)) {
+                setInputVisibility({});
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
     }, []);
 
     const evaluateExpression = (expression) => {
@@ -154,6 +169,17 @@ const Calculator = () => {
         setFilter({ column, value: event.target.value });
     };
 
+    const handleFilterIconClick = (column) => {
+        setInputVisibility(prev => ({
+            ...prev,
+            [column]: !prev[column] // Toggle visibility
+        }));
+    };
+
+    const handleFilterInputBlur = () => {
+        setInputVisibility({});
+    };
+
     const filteredLogs = logs.filter(log => {
         if (!filter.column || !filter.value) return true;
         const logValue = log[filter.column];
@@ -195,7 +221,7 @@ const Calculator = () => {
                     ))}
                 </div>
             </div>
-            <div className="logs">
+            <div className="logs" ref={filterRef}>
                 <table className="logs__table">
                     <thead className="logs__table-head">
                         <tr>
@@ -208,59 +234,108 @@ const Calculator = () => {
                             </th>
                             <th>
                                 ID
-                                <span className="filter-icon" onClick={handleFilterChange('id')}>🔍</span>
+                                <span className="filter-icon" onClick={() => handleFilterIconClick('id')}>🔍</span>
+                                {inputVisibility['id'] && (
+                                    <input
+                                        type="text"
+                                        className="filter-input"
+                                        placeholder="Filter ID"
+                                        value={filter.column === 'id' ? filter.value : ''}
+                                        onChange={handleFilterChange('id')}
+                                        onBlur={handleFilterInputBlur}
+                                    />
+                                )}
                             </th>
                             <th>
                                 Expression
-                                <span className="filter-icon" onClick={handleFilterChange('expression')}>🔍</span>
+                                <span className="filter-icon" onClick={() => handleFilterIconClick('expression')}>🔍</span>
+                                {inputVisibility['expression'] && (
+                                    <input
+                                        type="text"
+                                        className="filter-input"
+                                        placeholder="Filter Expression"
+                                        value={filter.column === 'expression' ? filter.value : ''}
+                                        onChange={handleFilterChange('expression')}
+                                        onBlur={handleFilterInputBlur}
+                                    />
+                                )}
                             </th>
                             <th>
                                 Valid
-                                <span className="filter-icon" onClick={handleFilterChange('is_valid')}>🔍</span>
+                                <span className="filter-icon" onClick={() => handleFilterIconClick('is_valid')}>🔍</span>
+                                {inputVisibility['is_valid'] && (
+                                    <input
+                                        type="text"
+                                        className="filter-input"
+                                        placeholder="Filter Valid"
+                                        value={filter.column === 'is_valid' ? filter.value : ''}
+                                        onChange={handleFilterChange('is_valid')}
+                                        onBlur={handleFilterInputBlur}
+                                    />
+                                )}
                             </th>
                             <th>
                                 Output
-                                <span className="filter-icon" onClick={handleFilterChange('output')}>🔍</span>
+                                <span className="filter-icon" onClick={() => handleFilterIconClick('output')}>🔍</span>
+                                {inputVisibility['output'] && (
+                                    <input
+                                        type="text"
+                                        className="filter-input"
+                                        placeholder="Filter Output"
+                                        value={filter.column === 'output' ? filter.value : ''}
+                                        onChange={handleFilterChange('output')}
+                                        onBlur={handleFilterInputBlur}
+                                    />
+                                )}
                             </th>
                             <th>
                                 Created On
-                                <span className="filter-icon" onClick={handleFilterChange('created_on')}>🔍</span>
+                                <span className="filter-icon" onClick={() => handleFilterIconClick('created_on')}>🔍</span>
+                                {inputVisibility['created_on'] && (
+                                    <input
+                                        type="text"
+                                        className="filter-input"
+                                        placeholder="Filter Created On"
+                                        value={filter.column === 'created_on' ? filter.value : ''}
+                                        onChange={handleFilterChange('created_on')}
+                                        onBlur={handleFilterInputBlur}
+                                    />
+                                )}
                             </th>
                         </tr>
-                        <tr>
-                            <td></td>
-                            <td><input type="text" onChange={handleFilterChange('id')} /></td>
-                            <td><input type="text" onChange={handleFilterChange('expression')} /></td>
-                            <td><input type="text" onChange={handleFilterChange('is_valid')} /></td>
-                            <td><input type="text" onChange={handleFilterChange('output')} /></td>
-                            <td><input type="text" onChange={handleFilterChange('created_on')} /></td>
-                        </tr>
                     </thead>
-                    <tbody>
-                        {currentLogs.map(log => (
-                            <tr key={log.id}>
-                                <td>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedLogs.has(log.id)}
-                                        onChange={() => handleRowSelect(log.id)}
-                                    />
-                                </td>
-                                <td>{log.id}</td>
-                                <td>{log.expression}</td>
-                                <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                <td>{log.output || 'N/A'}</td>
-                                <td>{new Date(log.created_on).toLocaleString()}</td>
-                            </tr>
-                        ))}
-                    </tbody>
+
+
+                    <tbody className="logs__table-body">
+    {currentLogs.map((log) => (
+        <tr
+            key={log.id}
+            className={selectedLogs.has(log.id) ? 'selected' : ''}
+            onClick={() => handleRowSelect(log.id)}
+        >
+            <td>
+                <input
+                    type="checkbox"
+                    checked={selectedLogs.has(log.id)}
+                    readOnly
+                />
+            </td>
+            <td>{log.id}</td>
+            <td>{log.expression}</td>
+            <td>{log.is_valid ? 'Yes' : 'No'}</td>
+            <td>{log.output || "N/A"}</td>
+            <td>{new Date(log.created_on).toLocaleString()}</td>
+        </tr>
+    ))}
+</tbody>
+
                 </table>
                 <div className="pagination">
                     {Array.from({ length: totalPages }, (_, index) => (
                         <button
                             key={index + 1}
+                            className={`pagination__button ${currentPage === index + 1 ? 'active' : ''}`}
                             onClick={() => handlePageChange(index + 1)}
-                            className={currentPage === index + 1 ? 'active' : ''}
                         >
                             {index + 1}
                         </button>

@@ -76,7 +76,7 @@ app.post('/api/logs', async (req, res) => {
 // GET endpoint to fetch the latest 10 logs
 app.get('/api/logs', async (req, res) => {
   try {
-    const logs = await CalculatorLog.findAll({ limit: 10, order: [['created_on', 'DESC']] });
+    const logs = await CalculatorLog.findAll({ limit: 40, order: [['created_on', 'DESC']] });
     res.status(200).json(logs);
   } catch (error) {
     logger.error('Error fetching logs', { error });
