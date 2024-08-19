@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { AiOutlineFilter } from "react-icons/ai";
 import './Calculator.css';
 
 const Calculator = () => {
@@ -9,25 +10,24 @@ const Calculator = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [rowsPerPage] = useState(10);
     const [filter, setFilter] = useState({ column: '', value: '' });
-    const [inputVisibility, setInputVisibility] = useState({}); // To manage filter input visibility
+    const [searchValue, setSearchValue] = useState({});
+    const [searchBoxVisible, setSearchBoxVisible] = useState(false);
+    const [searchBoxPosition, setSearchBoxPosition] = useState({ top: 0, left: 0 });
+    const [activeColumn, setActiveColumn] = useState('');
     const filterRef = useRef(null);
 
     // Fetch logs from the server
     const fetchLogs = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/logs', {
-                method: 'GET',
-                headers: {
-                    'Cache-Control': 'no-cache'
-                }
-            });
-            if (!response.ok) {
-                throw new Error(`HTTP error! Status: ${response.status}`);
+            const response = await fetch('http://localhost:3000/api/logs');
+            if (response.ok) {
+                const logsData = await response.json();
+                setLogs(logsData);
+            } else {
+                console.error('Failed to fetch logs');
             }
-            const logs = await response.json();
-            setLogs(logs);
         } catch (error) {
-            console.error('Error fetching logs:', error);
+            console.error('Error:', error);
         }
     };
 
@@ -38,7 +38,7 @@ const Calculator = () => {
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (filterRef.current && !filterRef.current.contains(event.target)) {
-                setInputVisibility({});
+                setSearchBoxVisible(false);
             }
         };
 
@@ -54,31 +54,19 @@ const Calculator = () => {
             .replace(/÷/g, '/')
             .replace(/%/g, '/100');
 
-        const isValid = /^[\d+\-*/().\s]*$/.test(expression);
-        const endsWithOperator = /[\d)]$/.test(expression);
-
-        if (isValid && endsWithOperator && expression.length > 0) {
-            try {
-                const result = eval(expression);
-                if (isNaN(result) || !isFinite(result)) {
-                    throw new Error('Invalid Result');
-                }
-                return result;
-            } catch (e) {
-                return 'Invalid Expression';
-            }
-        } else {
+        try {
+            const result = eval(expression);
+            return isNaN(result) ? 'Invalid Expression' : result;
+        } catch (e) {
             return 'Invalid Expression';
         }
     };
 
     const handleInput = (buttonText) => {
         let currentValue = inputValue;
-        const operatorRegex = /[\+\-×÷]/;
-        currentValue = currentValue.replace(/([+\-×÷]){2,}/g, '$1');
 
         if (['+', '-', '×', '÷'].includes(buttonText)) {
-            if (operatorRegex.test(currentValue.slice(-1))) {
+            if (/[\+\-×÷]/.test(currentValue.slice(-1))) {
                 setInputValue(currentValue.slice(0, -1) + buttonText);
             } else {
                 setInputValue(currentValue + buttonText);
@@ -87,31 +75,7 @@ const Calculator = () => {
             setInputValue(currentValue + buttonText);
         }
 
-        const result = evaluateExpression(inputValue + buttonText);
-        setResult(result);
-    };
-
-    const sendLog = async (expression, isValid, output) => {
-        if (!expression) {
-            alert('Expression is empty');
-            return;
-        }
-        try {
-            const response = await fetch('http://localhost:3000/api/logs', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ expression, is_valid: isValid, output })
-            });
-            if (!response.ok) {
-                const result = await response.json();
-                alert(result.message);
-            }
-            fetchLogs(); // Fetch logs after sending
-        } catch (error) {
-            console.error('Error sending log:', error);
-        }
+        setResult(evaluateExpression(inputValue + buttonText));
     };
 
     const handleButtonClick = async (buttonText) => {
@@ -120,8 +84,7 @@ const Calculator = () => {
             setResult('');
         } else if (buttonText === '⌫') {
             setInputValue(inputValue.slice(0, -1));
-            const result = evaluateExpression(inputValue.slice(0, -1));
-            setResult(result);
+            setResult(evaluateExpression(inputValue.slice(0, -1)));
         } else if (buttonText === '=') {
             const expression = inputValue
                 .replace(/×/g, '*')
@@ -129,15 +92,23 @@ const Calculator = () => {
                 .replace(/%/g, '/100');
 
             const result = evaluateExpression(expression);
+            setInputValue(result);
+            setResult(result);
 
-            if (result === 'Invalid Expression') {
-                setResult('Invalid Expression');
-                await sendLog(expression, false, null);
-                alert('Invalid Expression');
-            } else {
-                setInputValue(result);
-                setResult(result);
-                await sendLog(expression, true, result);
+            // Sending log
+            if (expression) {
+                try {
+                    await fetch('http://localhost:3000/api/logs', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ expression, is_valid: result !== 'Invalid Expression', output: result })
+                    });
+                    fetchLogs(); // Refresh logs
+                } catch (error) {
+                    console.error('Error:', error);
+                }
             }
         } else {
             handleInput(buttonText);
@@ -146,43 +117,48 @@ const Calculator = () => {
 
     const handleSelectAll = (event) => {
         const checked = event.target.checked;
-        if (checked) {
-            setSelectedLogs(new Set(logs.map(log => log.id)));
-        } else {
-            setSelectedLogs(new Set());
-        }
+        setSelectedLogs(checked ? new Set(logs.map(log => log.id)) : new Set());
     };
 
     const handleRowSelect = (id) => {
         setSelectedLogs(prev => {
             const updated = new Set(prev);
-            if (updated.has(id)) {
-                updated.delete(id);
-            } else {
-                updated.add(id);
-            }
+            updated.has(id) ? updated.delete(id) : updated.add(id);
             return updated;
         });
     };
 
-    const handleFilterChange = (column) => (event) => {
-        setFilter({ column, value: event.target.value });
+    const handleFilterIconClick = (event, column) => {
+        const { top, left, height } = event.currentTarget.getBoundingClientRect();
+        setSearchBoxPosition({ top: top + height + window.scrollY, left: left + window.scrollX });
+        setActiveColumn(column);
+        setSearchBoxVisible(prev => !prev);
     };
 
-    const handleFilterIconClick = (column) => {
-        setInputVisibility(prev => ({
-            ...prev,
-            [column]: !prev[column] // Toggle visibility
-        }));
+    const handleSearchSubmit = () => {
+        setFilter({ column: activeColumn, value: searchValue[activeColumn] });
+        setSearchBoxVisible(false);
     };
 
-    const handleFilterInputBlur = () => {
-        setInputVisibility({});
+    const handleSearchReset = () => {
+        setSearchValue(prev => ({ ...prev, [activeColumn]: '' }));
+        setFilter({ column: activeColumn, value: '' });
+        setSearchBoxVisible(false);
+    };
+
+    const handleFilterChange = (event) => {
+        setSearchValue(prev => ({ ...prev, [activeColumn]: event.target.value }));
     };
 
     const filteredLogs = logs.filter(log => {
         if (!filter.column || !filter.value) return true;
+
         const logValue = log[filter.column];
+
+        if (filter.column === 'is_valid') {
+            return logValue === (filter.value.toLowerCase() === 'yes');
+        }
+
         return logValue && logValue.toString().toLowerCase().includes(filter.value.toLowerCase());
     });
 
@@ -190,10 +166,6 @@ const Calculator = () => {
     const indexOfFirstLog = indexOfLastLog - rowsPerPage;
     const currentLogs = filteredLogs.slice(indexOfFirstLog, indexOfLastLog);
     const totalPages = Math.ceil(filteredLogs.length / rowsPerPage);
-
-    const handlePageChange = (pageNumber) => {
-        setCurrentPage(pageNumber);
-    };
 
     return (
         <div className="container">
@@ -221,121 +193,85 @@ const Calculator = () => {
                     ))}
                 </div>
             </div>
-            <div className="logs" ref={filterRef}>
+            <div className="logs">
                 <table className="logs__table">
                     <thead className="logs__table-head">
                         <tr>
                             <th>
                                 <input
+                                    className='checkbox'
                                     type="checkbox"
                                     onChange={handleSelectAll}
                                     checked={filteredLogs.length > 0 && selectedLogs.size === filteredLogs.length}
                                 />
                             </th>
-                            <th>
-                                ID
-                                <span className="filter-icon" onClick={() => handleFilterIconClick('id')}>🔍</span>
-                                {inputVisibility['id'] && (
-                                    <input
-                                        type="text"
-                                        className="filter-input"
-                                        placeholder="Filter ID"
-                                        value={filter.column === 'id' ? filter.value : ''}
-                                        onChange={handleFilterChange('id')}
-                                        onBlur={handleFilterInputBlur}
-                                    />
-                                )}
-                            </th>
-                            <th>
-                                Expression
-                                <span className="filter-icon" onClick={() => handleFilterIconClick('expression')}>🔍</span>
-                                {inputVisibility['expression'] && (
-                                    <input
-                                        type="text"
-                                        className="filter-input"
-                                        placeholder="Filter Expression"
-                                        value={filter.column === 'expression' ? filter.value : ''}
-                                        onChange={handleFilterChange('expression')}
-                                        onBlur={handleFilterInputBlur}
-                                    />
-                                )}
-                            </th>
-                            <th>
-                                Valid
-                                <span className="filter-icon" onClick={() => handleFilterIconClick('is_valid')}>🔍</span>
-                                {inputVisibility['is_valid'] && (
-                                    <input
-                                        type="text"
-                                        className="filter-input"
-                                        placeholder="Filter Valid"
-                                        value={filter.column === 'is_valid' ? filter.value : ''}
-                                        onChange={handleFilterChange('is_valid')}
-                                        onBlur={handleFilterInputBlur}
-                                    />
-                                )}
-                            </th>
-                            <th>
-                                Output
-                                <span className="filter-icon" onClick={() => handleFilterIconClick('output')}>🔍</span>
-                                {inputVisibility['output'] && (
-                                    <input
-                                        type="text"
-                                        className="filter-input"
-                                        placeholder="Filter Output"
-                                        value={filter.column === 'output' ? filter.value : ''}
-                                        onChange={handleFilterChange('output')}
-                                        onBlur={handleFilterInputBlur}
-                                    />
-                                )}
-                            </th>
-                            <th>
-                                Created On
-                                <span className="filter-icon" onClick={() => handleFilterIconClick('created_on')}>🔍</span>
-                                {inputVisibility['created_on'] && (
-                                    <input
-                                        type="text"
-                                        className="filter-input"
-                                        placeholder="Filter Created On"
-                                        value={filter.column === 'created_on' ? filter.value : ''}
-                                        onChange={handleFilterChange('created_on')}
-                                        onBlur={handleFilterInputBlur}
-                                    />
-                                )}
-                            </th>
+                            {['id', 'expression', 'is_valid', 'output', 'created_on'].map(column => (
+                                <th key={column}>
+                                    {column.replace('_', ' ').toUpperCase()}
+                                    <span 
+                                        className="filter-icon"
+                                        onClick={(event) => handleFilterIconClick(event, column)}
+                                    >
+                                        <AiOutlineFilter />
+                                    </span>
+                                </th>
+                            ))}
                         </tr>
                     </thead>
-
-
-                    <tbody className="logs__table-body">
-    {currentLogs.map((log) => (
-        <tr
-            key={log.id}
-            className={selectedLogs.has(log.id) ? 'selected' : ''}
-            onClick={() => handleRowSelect(log.id)}
-        >
-            <td>
-                <input
-                    type="checkbox"
-                    checked={selectedLogs.has(log.id)}
-                    readOnly
-                />
-            </td>
-            <td>{log.id}</td>
-            <td>{log.expression}</td>
-            <td>{log.is_valid ? 'Yes' : 'No'}</td>
-            <td>{log.output || "N/A"}</td>
-            <td>{new Date(log.created_on).toLocaleString()}</td>
-        </tr>
-    ))}
-</tbody>
-
+                    <tbody>
+                        {currentLogs.map(log => (
+                            <tr key={log.id}>
+                                <td>
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedLogs.has(log.id)}
+                                        onChange={() => handleRowSelect(log.id)}
+                                    />
+                                </td>
+                                <td>{log.id}</td>
+                                <td>{log.expression}</td>
+                                <td>{log.is_valid ? 'Yes' : 'No'}</td>
+                                <td>{log.output || "N/A"}</td>
+                                <td>{new Date(log.created_on).toLocaleString()}</td>
+                            </tr>
+                        ))}
+                    </tbody>
                 </table>
+                {searchBoxVisible && (
+                    <div
+                        className="search-box"
+                        style={{ top: searchBoxPosition.top, left: searchBoxPosition.left }}
+                        ref={filterRef}
+                    >
+                        <input
+                            type="text"
+                            className="search-box__input"
+                            placeholder={`Search ${activeColumn.replace('_', ' ')}`}
+                            value={searchValue[activeColumn] || ''}
+                            onChange={handleFilterChange}
+                        />
+                        <div className="search-box__buttons">
+                            <button
+                                className="search-box__button search-box__button--submit"
+                                onClick={handleSearchSubmit}
+                            >
+                                Search
+                            </button>
+                            <button
+                                className="search-box__button search-box__button--reset"
+                                onClick={handleSearchReset}
+                            >
+                                Reset
+                            </button>
+                        </div>
+                    </div>
+                )}
                 <div className="pagination">
                     {Array.from({ length: totalPages }, (_, index) => (
                         <button
-                            key={index + 1}
-                            className={`pagination__button ${currentPage === index + 1 ? 'active' : ''}`}
-                            onClick={() => handlePageChange(index + 1)}
+                            key={index}
+                            onClick={() => setCurrentPage(index + 1)}
+                            className={`pagination__button ${currentPage === index + 1 ? 'pagination__button--active' : ''}`}
                         >
                             {index + 1}
                         </button>

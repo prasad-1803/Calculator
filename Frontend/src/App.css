@@ -4,7 +4,7 @@ body {
   justify-content: center;
   align-items: center;
   height: 100vh;
-  background-color: #333;
+  background-color: #ffffff;
   margin: 0;
   
 }
@@ -13,7 +13,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 30px; 
-  width: 90%;
+  width: 100%;
   max-width: 1200px;
 }
 
