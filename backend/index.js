@@ -25,7 +25,7 @@ const CalculatorLog = sequelize.define('calculator_log', {
     allowNull: false
   },
   output: {
-    type: DataTypes.INTEGER,
+    type: DataTypes.STRING,
     allowNull: true
   },
   created_on: {
@@ -73,10 +73,31 @@ app.post('/api/logs', async (req, res) => {
   }
 });
 
+// DELETE endpoint to delete records by IDs
+app.delete('/api/logs', async (req, res) => {
+  const { ids } = req.body;
+
+  if (!Array.isArray(ids) || ids.length === 0) {
+    return res.status(400).json({ message: 'Invalid request: IDs must be an array and cannot be empty' });
+  }
+
+  try {
+    await CalculatorLog.destroy({
+      where: {
+        id: ids
+      }
+    });
+    res.status(200).json({ message: 'Logs deleted successfully' });
+  } catch (error) {
+    logger.error('Error deleting logs', { error });
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 // GET endpoint to fetch the latest 10 logs
 app.get('/api/logs', async (req, res) => {
   try {
-    const logs = await CalculatorLog.findAll({ limit: 40, order: [['created_on', 'DESC']] });
+    const logs = await CalculatorLog.findAll({ order: [['created_on', 'DESC']] });
     res.status(200).json(logs);
   } catch (error) {
     logger.error('Error fetching logs', { error });
