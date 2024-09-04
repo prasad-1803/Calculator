@@ -1,5 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { AiOutlineFilter } from "react-icons/ai";
+import { FaFilter } from "react-icons/fa";
+import { SlArrowRight } from "react-icons/sl";
+import { SlArrowLeft } from "react-icons/sl";
+import { RiDeleteBin6Line } from "react-icons/ri";
 import './Calculator.css';
 
 const Calculator = () => {
@@ -48,6 +51,7 @@ const Calculator = () => {
         };
     }, []);
 
+  
     const evaluateExpression = (expression) => {
         expression = expression
             .replace(/×/g, '*')
@@ -115,6 +119,7 @@ const Calculator = () => {
         }
     };
 
+    
     const handleSelectAll = (event) => {
         const checked = event.target.checked;
         setSelectedLogs(checked ? new Set(logs.map(log => log.id)) : new Set());
@@ -148,6 +153,31 @@ const Calculator = () => {
 
     const handleFilterChange = (event) => {
         setSearchValue(prev => ({ ...prev, [activeColumn]: event.target.value }));
+    };
+
+    const handleDelete = async () => {
+        const idsToDelete = Array.from(selectedLogs);
+
+        if (idsToDelete.length === 0) return;
+
+        try {
+            const response = await fetch('http://localhost:3000/api/logs', {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ ids: idsToDelete })
+            });
+
+            if (response.ok) {
+                fetchLogs(); // Refresh logs after deletion
+                setSelectedLogs(new Set()); // Clear selected logs
+            } else {
+                console.error('Failed to delete logs');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        }
     };
 
     const filteredLogs = logs.filter(log => {
@@ -194,6 +224,16 @@ const Calculator = () => {
                 </div>
             </div>
             <div className="logs">
+             <div  className='inline-container'>
+             <h1 >Calculator Logs Table :-</h1>
+             <button
+                    className="delete-button"
+                    onClick={handleDelete}
+                    disabled={selectedLogs.size === 0}
+                >
+                     <RiDeleteBin6Line/>
+                </button>
+             </div>
                 <table className="logs__table">
                     <thead className="logs__table-head">
                         <tr>
@@ -212,13 +252,13 @@ const Calculator = () => {
                                         className="filter-icon"
                                         onClick={(event) => handleFilterIconClick(event, column)}
                                     >
-                                        <AiOutlineFilter />
+                                        <FaFilter />
                                     </span>
                                 </th>
                             ))}
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody className='logs__table-body '>
                         {currentLogs.map(log => (
                             <tr key={log.id}>
                                 <td>
@@ -231,52 +271,51 @@ const Calculator = () => {
                                 <td>{log.id}</td>
                                 <td>{log.expression}</td>
                                 <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                <td>{log.output || "N/A"}</td>
-                                <td>{new Date(log.created_on).toLocaleString()}</td>
+                                <td>{log.output =="invalid expression"||"N/A"}</td>
+                                <td>{new Date(log.created_on).toLocaleDateString()}</td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
+                <div className="pagination">
+                    <button
+                        className='pagination__button'
+                        onClick={() => setCurrentPage(page => Math.max(page - 1, 1))}
+                        disabled={currentPage === 1}
+                    >
+                        <SlArrowLeft />
+                    </button>
+                    <span className='pagination__button'> {currentPage}</span>
+                    <button
+                        className='pagination__button'
+                        onClick={() => setCurrentPage(page => Math.min(page + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                    >
+                        <SlArrowRight/>
+                    </button>
+                </div>
                 {searchBoxVisible && (
-                    <div
+                    <div 
                         className="search-box"
                         style={{ top: searchBoxPosition.top, left: searchBoxPosition.left }}
                         ref={filterRef}
                     >
                         <input
+                            className='search-box__input'
                             type="text"
-                            className="search-box__input"
-                            placeholder={`Search ${activeColumn.replace('_', ' ')}`}
                             value={searchValue[activeColumn] || ''}
                             onChange={handleFilterChange}
+                            placeholder={`Search ${activeColumn}`}
                         />
-                        <div className="search-box__buttons">
-                            <button
-                                className="search-box__button search-box__button--submit"
-                                onClick={handleSearchSubmit}
-                            >
-                                Search
-                            </button>
-                            <button
-                                className="search-box__button search-box__button--reset"
-                                onClick={handleSearchReset}
-                            >
-                                Reset
-                            </button>
-                        </div>
+                        <div className='search-box__buttons '>
+
+                        <button onClick={handleSearchSubmit} className='search-box__button--submit search-box__button'  >Submit</button>
+                       
+                         <button onClick={handleSearchReset} className='search-box__button--reset search-box__button '  >Reset</button>
+                        </div>                   
                     </div>
                 )}
-                <div className="pagination">
-                    {Array.from({ length: totalPages }, (_, index) => (
-                        <button
-                            key={index}
-                            onClick={() => setCurrentPage(index + 1)}
-                            className={`pagination__button ${currentPage === index + 1 ? 'pagination__button--active' : ''}`}
-                        >
-                            {index + 1}
-                        </button>
-                    ))}
-                </div>
+               
             </div>
         </div>
     );
