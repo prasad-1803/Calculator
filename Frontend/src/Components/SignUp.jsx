@@ -1,6 +1,10 @@
-// src/components/SignUp.js
 import React, { useState } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom';
+import { ColorPicker, useColor } from 'react-color-palette';
+import 'react-color-palette/css';
+
+import '../../styles/SignUp.css';
 
 const SignUp = () => {
   const [firstName, setFirstName] = useState('');
@@ -9,10 +13,14 @@ const SignUp = () => {
   const [password, setPassword] = useState('');
   const [age, setAge] = useState('');
   const [homeAddress, setHomeAddress] = useState('');
-  const [primaryColor, setPrimaryColor] = useState('');
-  const [secondaryColor, setSecondaryColor] = useState('');
   const [logo, setLogo] = useState('');
   const [message, setMessage] = useState('');
+
+  const [primaryColor, setPrimaryColor] = useColor('#ffffff'); // Initialize with a default color
+  const [secondaryColor, setSecondaryColor] = useColor('#ffffff'); // Initialize with a default color
+
+  const [isPrimaryColorPickerVisible, setPrimaryColorPickerVisible] = useState(false);
+  const [isSecondaryColorPickerVisible, setSecondaryColorPickerVisible] = useState(false);
 
   const handleSignUp = async (e) => {
     e.preventDefault();
@@ -24,8 +32,8 @@ const SignUp = () => {
         password: password,
         age: age,
         home_address: homeAddress,
-        primary_color: primaryColor,
-        secondary_color: secondaryColor,
+        primary_color: primaryColor.hex, // Use the hex value for API
+        secondary_color: secondaryColor.hex, // Use the hex value for API
         logo: logo
       });
       setMessage('Sign-up successful. Please sign in.');
@@ -35,92 +43,144 @@ const SignUp = () => {
   };
 
   return (
-    <div>
+    <div className="signup-container">
       <h2>Sign Up</h2>
-      <form onSubmit={handleSignUp}>
-        <div>
-          <label>First Name</label>
-          <input
-            type="text"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-          />
+      <form onSubmit={handleSignUp} className="signup-form">
+        <div className="form-layout">
+          {/* Right Side */}
+          <div className="form-left">
+            <div className="form-group">
+              <label>First Name</label>
+              <input
+                type="text"
+                className="input-field"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Last Name</label>
+              <input
+                type="text"
+                className="input-field"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+              />
+            </div>
+            <div className="form-group">
+              <label>Email Address</label>
+              <input
+                type="email"
+                className="input-field"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Password</label>
+              <input
+                type="password"
+                className="input-field"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Age</label>
+              <input
+                type="number"
+                className="input-field"
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                required
+              />
+            </div>
+            <div className="form-group">
+              <label>Home Address</label>
+              <input
+                type="text"
+                className="input-field"
+                value={homeAddress}
+                onChange={(e) => setHomeAddress(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+
+          {/* Left Side */}
+          <div className="form-right">
+            <div className="form-group">
+              <label>Primary Color</label>
+              <div
+                className="color-picker-dropdown"
+                onClick={() => setPrimaryColorPickerVisible(!isPrimaryColorPickerVisible)}
+              >
+                <input
+                  type="text"
+                  className="input-field"
+                  readOnly
+                  value={primaryColor.hex}
+                  placeholder="Select Primary Color"
+                />
+                {isPrimaryColorPickerVisible && (
+                  <ColorPicker
+                    width={200}
+                    height={200}
+                    color={primaryColor}
+                    onChange={setPrimaryColor}
+                    hideHSV
+                    hideRGB
+                  />
+                )}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Secondary Color</label>
+              <div
+                className="color-picker-dropdown"
+                onClick={() => setSecondaryColorPickerVisible(!isSecondaryColorPickerVisible)}
+              >
+                <input
+                  type="text"
+                  className="input-field"
+                  readOnly
+                  value={secondaryColor.hex}
+                  placeholder="Select Secondary Color"
+                />
+                {isSecondaryColorPickerVisible && (
+                  <ColorPicker
+                    width={200}
+                    height={200}
+                    color={secondaryColor}
+                    onChange={setSecondaryColor}
+                    hideHSV
+                    hideRGB
+                  />
+                )}
+              </div>
+            </div>
+            <div className="form-group">
+              <label>Logo URL</label>
+              <input
+                type="text"
+                className="input-field"
+                value={logo}
+                onChange={(e) => setLogo(e.target.value)}
+                required
+              />
+            </div>
+          </div>
         </div>
-        <div>
-          <label>Last Name</label>
-          <input
-            type="text"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-          />
-        </div>
-        <div>
-          <label>Email Address</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Password</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Age</label>
-          <input
-            type="number"
-            value={age}
-            onChange={(e) => setAge(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Home Address</label>
-          <input
-            type="text"
-            value={homeAddress}
-            onChange={(e) => setHomeAddress(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Primary Color</label>
-          <input
-            type="text"
-            value={primaryColor}
-            onChange={(e) => setPrimaryColor(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Secondary Color</label>
-          <input
-            type="text"
-            value={secondaryColor}
-            onChange={(e) => setSecondaryColor(e.target.value)}
-            required
-          />
-        </div>
-        <div>
-          <label>Logo URL</label>
-          <input
-            type="text"
-            value={logo}
-            onChange={(e) => setLogo(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit">Sign Up</button>
+        <button type="submit" className="submit-button">Sign Up</button>
+        <Link to="/signin">
+          <button className="submit-button">Sign In</button>
+        </Link>
       </form>
-      {message && <p>{message}</p>}
+
+      {message && <p className="error-message">{message}</p>}
     </div>
   );
 };

@@ -1,13 +1,13 @@
 // src/App.js
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import SignIn from './src/Components/SignIn';
-import SignUp from './src/Components/SignUp';
+import SignIn from './src/components/SignIn';
+import SignUp from './src/components/SignUp';
 // import Profile from '../Components/Profile';
-import Home from './src/Components/Home';
-import Header from './src/Components/Headers';
+import Home from './src/components/Home';
+import Header from './src/components/Headers';
 import './App.css';
-import Calculator from './src/Components/Calculator';
+import Calculator from './src/components/Calculator';
 
 const App = () => {
   const [user, setUser] = useState(null);
