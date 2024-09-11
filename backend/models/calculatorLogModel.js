@@ -18,6 +18,14 @@ const CalculatorLog = sequelize.define('calculator_log', {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
     allowNull: false
+  },
+  user_id: {
+    type: DataTypes.BIGINT,
+    references: {
+      model: 'users',
+      key: 'id'
+    },
+    allowNull: true // Make sure this matches your requirements (nullable or not)
   }
 }, {
   timestamps: false,

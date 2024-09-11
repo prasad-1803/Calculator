@@ -127,12 +127,13 @@ const SignUp = () => {
                 />
                 {isPrimaryColorPickerVisible && (
                   <ColorPicker
-                    width={200}
-                    height={200}
+                    width={50}
+                    height={50}
                     color={primaryColor}
                     onChange={setPrimaryColor}
                     hideHSV
                     hideRGB
+                    hideHEX
                   />
                 )}
               </div>
@@ -152,12 +153,13 @@ const SignUp = () => {
                 />
                 {isSecondaryColorPickerVisible && (
                   <ColorPicker
-                    width={200}
-                    height={200}
+                    width={50}
+                    height={50}
                     color={secondaryColor}
                     onChange={setSecondaryColor}
                     hideHSV
                     hideRGB
+                    hideHEX
                   />
                 )}
               </div>
@@ -174,10 +176,12 @@ const SignUp = () => {
             </div>
           </div>
         </div>
+        <div className='down-btn'>
         <button type="submit" className="submit-button">Sign Up</button>
-        <Link to="/signin">
-          <button className="submit-button">Sign In</button>
+        <Link to="/signin" className="submit-button">
+        Sign In
         </Link>
+        </div>
       </form>
 
       {message && <p className="error-message">{message}</p>}

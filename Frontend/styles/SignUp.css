@@ -1,8 +1,8 @@
 .signup-container {
-    background-color: white;
+    background-color:  rgb(217, 243, 255);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(12, 12, 12, 0.1);
     width: 100%;
     max-width: 800px;
     margin: auto;
@@ -27,6 +27,11 @@
     gap: 9rem; 
 }
 
+.down-btn {
+    display: flex;
+    justify-content: space-between; /* or space-around if you want spacing around them */
+    gap: 10px; /* Add some spacing between the buttons */
+  }
 .form-left, .form-right {
     flex: 1; 
 }
@@ -48,9 +53,12 @@
     border: 1px solid #ccc;
     border-radius: 4px;
     font-size: 0.9rem;
+    background-color:  rgb(217, 243, 255);
 }
 
 .submit-button {
+    text-align: center;
+    text-decoration: none; 
     padding: 0.75rem;
     border: none;
     background-color: #4CAF50;
@@ -60,11 +68,11 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin-top: 1rem;
-    width: 100%;
+    width: 50%;
 }
 
 .submit-button:hover {
-    background-color: #45a049;
+    background-color: #5cb360;
 }
 
 .error-message {

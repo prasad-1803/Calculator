@@ -1,10 +1,10 @@
 /* src/styles/SignIn.css */
 
 .signin-container {
-    background-color: white;
+    background-color: rgb(217, 243, 255);
     padding: 2rem;
     border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(18, 17, 17, 0.1);
     width: 100%;
     max-width: 400px;
     margin: auto;
@@ -21,7 +21,7 @@
     flex-direction: column;
   }
   
-  .signin-container form div {
+  .signin-container div {
     margin-bottom: 1rem;
   }
   
@@ -33,6 +33,7 @@
   }
   
   .input-field {
+    background-color: rgb(217, 243, 255);
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #ccc;
@@ -50,6 +51,7 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin-top: 1rem;
+    width: 100%;
   }
   
   .submit-button:hover {
@@ -73,18 +75,13 @@
     color: #555;
   }
   
-  .signup-button {
-    background-color: #008CBA;
-    color: white;
-    padding: 0.75rem;
-    border: none;
-    border-radius: 4px;
+  .signup-link {
+    color: #008CBA;
+    text-decoration: none;
     font-size: 1rem;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
   }
   
-  .signup-button:hover {
-    background-color: #007B9E;
+  .signup-link:hover {
+    text-decoration: underline;
   }
   

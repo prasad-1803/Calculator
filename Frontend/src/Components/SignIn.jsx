@@ -20,7 +20,8 @@ const SignIn = () => {
       localStorage.setItem('token', response.data.token);
       setMessage('Sign-in successful.');
       
-      navigate('/calculator');
+      navigate('/Home');
+      console.log("hello");
     } catch (error) {
       setMessage('Error: ' + error.response?.data?.message || 'Internal Server Error');
     }
@@ -51,17 +52,16 @@ const SignIn = () => {
           />
         </div>
         <button type="submit" className="submit-button">Sign In</button>
+        <div className="signup-message">
+          <p>Don't have an account?</p>
+          <Link to="/signup" className="signup-link">Sign Up</Link>
+        </div>
+        
       </form>
 
-      {message && <p className="error-message">{message}</p>}
-
-      <div className="signup-message">
-      <p>{message}</p>
-        <p>Don't have an account?</p>
-        <Link to="/signup">
-          <button className="signup-button">Create an Account</button>
-        </Link>
-      </div>
+     
+     
+      {message && <p>{message}</p>}
     </div>
   );
 };

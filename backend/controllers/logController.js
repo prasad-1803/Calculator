@@ -3,13 +3,19 @@ const { handleError, handleSuccess } = require('../utils/helpers');
 
 exports.createLog = async (req, res) => {
   const logData = req.body;
+  
+  // Assuming you are sending `user_id` in the request body or extracting it from the token/session
+  const userId = req.body.userId; // Adjust this based on where you're getting the user ID
+
   try {
-    const log = await logService.createLog(logData);
+    // Ensure `user_id` is included in the log data
+    const log = await logService.createLog({ ...logData, user_id: userId });
     handleSuccess(res, { result: log.output });
   } catch (error) {
     handleError(res, error);
   }
 };
+
 
 exports.deleteLogs = async (req, res) => {
   const { ids } = req.body;
@@ -23,7 +29,8 @@ exports.deleteLogs = async (req, res) => {
 
 exports.getLogs = async (req, res) => {
   try {
-    const logs = await logService.getLogs();
+    const userId = req.user.id; // Extract user ID from authenticated request
+    const logs = await logService.getLogsForUser(userId); // Fetch logs for the specific user
     handleSuccess(res, logs);
   } catch (error) {
     handleError(res, error);

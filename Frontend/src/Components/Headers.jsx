@@ -1,19 +1,18 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import EditProfile from './EditProfile';  // Import the EditProfile component
-import '../../styles/Header.css';  // Import the new CSS file
+import ProfileDetails from './ProfileDetail';  // Import the ProfileDetails component
+import '../../styles/Header.css';  // Import the CSS file for the header
 
 const Header = ({ user, onSignOut }) => {
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false); // State to handle Edit Profile visibility
+  const [isProfileDetailsOpen, setIsProfileDetailsOpen] = useState(false); // State to handle ProfileDetails visibility
 
-  // Handle profile click to open Edit Profile
-  const handleProfileClick = () => {
-    setIsEditProfileOpen(true);
+  // Toggle the ProfileDetails modal
+  const toggleProfileDetails = () => {
+    setIsProfileDetailsOpen(prevState => !prevState);
   };
 
-  // Handle close of the Edit Profile component
-  const handleCloseEditProfile = () => {
-    setIsEditProfileOpen(false);
+  // Handle close of the ProfileDetails component
+  const handleCloseProfileDetails = () => {
+    setIsProfileDetailsOpen(false);
   };
 
   return (
@@ -24,9 +23,9 @@ const Header = ({ user, onSignOut }) => {
             src={user.logo}
             alt={`${user.first_name}'s logo`}
             className="logo"
-            onClick={handleProfileClick}  // Open Edit Profile on click
+            onClick={toggleProfileDetails}  // Toggle ProfileDetails on click
           />
-          <div className="user-info" onClick={handleProfileClick}>  {/* Open Edit Profile on click */}
+          <div className="user-info" onClick={toggleProfileDetails}>  {/* Toggle ProfileDetails on click */}
             <span className="user-name">{user.first_name} {user.last_name}</span>
           </div>
         </div>
@@ -38,10 +37,10 @@ const Header = ({ user, onSignOut }) => {
         </button>
       </header>
 
-      {/* Conditionally render the Edit Profile component */}
-      {isEditProfileOpen && (
-        <div className="edit-profile-modal">
-          <EditProfile onClose={handleCloseEditProfile} />
+      {/* Conditionally render the ProfileDetails component */}
+      {isProfileDetailsOpen && (
+        <div className="profile-detail-modal">
+          <ProfileDetails onClose={handleCloseProfileDetails} />
         </div>
       )}
     </>

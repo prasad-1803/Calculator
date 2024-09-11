@@ -1,10 +1,13 @@
-import React from 'react'
-import ReactDOM from 'react-dom/client'
-import App from '../App.jsx'
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { Provider } from 'react-redux';
+import store from './store/store'; // Update the path to where your store is located
+import App from '../App'; // Update the path to where your App component is located
 
+const root = createRoot(document.getElementById('root'));
 
-ReactDOM.createRoot(document.getElementById('root')).render(
-  
+root.render(
+  <Provider store={store}>
     <App />
-  
-)
+  </Provider>
+);

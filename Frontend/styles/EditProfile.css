@@ -1,20 +1,22 @@
-.signup-container {
+
+.edit-profile-container {
+    position: relative; /* Ensure the close button is positioned relative to this container */
     background-color: white;
     padding: 2rem;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     width: 100%;
-    max-width: 800px; /* Increased width */
+    max-width: 600px;
     margin: auto;
 }
 
-.signup-container h2 {
+.edit-profile-container h2 {
     text-align: center;
     margin-bottom: 1.5rem;
     color: #333;
 }
 
-.signup-form {
+.edit-profile-form {
     display: flex;
     flex-direction: column;
 }
@@ -22,12 +24,11 @@
 .form-layout {
     display: flex;
     justify-content: space-between;
-    
-    gap: 9rem; 
+    gap: 3rem;
 }
 
 .form-left, .form-right {
-    flex: 1; /* Both sides take equal space */
+    flex: 1;
 }
 
 .form-group {
@@ -42,7 +43,7 @@
 }
 
 .input-field {
-    width: 100%;
+    width: 60%; /* Adjusted to take full width of the container */
     padding: 0.6rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -59,7 +60,8 @@
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin-top: 1rem;
-    width: 100%;
+    width: 60%;
+    align-self: center;
 }
 
 .submit-button:hover {
@@ -71,4 +73,16 @@
     text-align: center;
     margin-top: 1rem;
     font-weight: bold;
+}
+
+.close-button {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    z-index: 10; /* Ensure the button is on top of other elements */
+    color: #333; /* Ensure the button color contrasts with the background */
 }

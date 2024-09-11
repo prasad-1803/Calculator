@@ -3,7 +3,7 @@ import { FaFilter } from "react-icons/fa";
 import { SlArrowRight } from "react-icons/sl";
 import { SlArrowLeft } from "react-icons/sl";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import './Calculator.css';
+import '../../styles/Calculator.css';
 
 const Calculator = () => {
     const [inputValue, setInputValue] = useState('');
@@ -19,10 +19,15 @@ const Calculator = () => {
     const [activeColumn, setActiveColumn] = useState('');
     const filterRef = useRef(null);
 
-    // Fetch logs from the server
     const fetchLogs = async () => {
         try {
-            const response = await fetch('http://localhost:3000/api/logs');
+            const token = localStorage.getItem('token'); // Get the token from local storage or any other method you use
+            const response = await fetch('http://localhost:3000/api/logs', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+    
             if (response.ok) {
                 const logsData = await response.json();
                 setLogs(logsData);
@@ -33,6 +38,7 @@ const Calculator = () => {
             console.error('Error:', error);
         }
     };
+    
 
     useEffect(() => {
         fetchLogs();
@@ -83,31 +89,37 @@ const Calculator = () => {
     };
 
     const handleButtonClick = async (buttonText) => {
-        if (buttonText === 'AC') {
-            setInputValue('');
-            setResult('');
-        } else if (buttonText === '⌫') {
-            setInputValue(inputValue.slice(0, -1));
-            setResult(evaluateExpression(inputValue.slice(0, -1)));
-        } else if (buttonText === '=') {
+        if (buttonText === '=') {
             const expression = inputValue
                 .replace(/×/g, '*')
                 .replace(/÷/g, '/')
                 .replace(/%/g, '/100');
-
+    
             const result = evaluateExpression(expression);
             setInputValue(result);
             setResult(result);
-
+    
             // Sending log
             if (expression) {
                 try {
+                    const token = localStorage.getItem('token');
+                    const profile = localStorage.getItem('profile');
+                   
+                    const profileData = JSON.parse(profile);
+                    
+                    const userId = profileData.id; // Retrieve the user ID
                     await fetch('http://localhost:3000/api/logs', {
                         method: 'POST',
                         headers: {
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
                         },
-                        body: JSON.stringify({ expression, is_valid: result !== 'Invalid Expression', output: result })
+                        body: JSON.stringify({ 
+                            expression, 
+                            is_valid: result !== 'Invalid Expression', 
+                            output: result,
+                            userId // Include user ID in the body
+                        })
                     });
                     fetchLogs(); // Refresh logs
                 } catch (error) {
@@ -118,7 +130,7 @@ const Calculator = () => {
             handleInput(buttonText);
         }
     };
-
+    
     
     const handleSelectAll = (event) => {
         const checked = event.target.checked;
@@ -157,18 +169,20 @@ const Calculator = () => {
 
     const handleDelete = async () => {
         const idsToDelete = Array.from(selectedLogs);
-
+    
         if (idsToDelete.length === 0) return;
-
+    
         try {
+            const token = localStorage.getItem('token'); // Get the token
             const response = await fetch('http://localhost:3000/api/logs', {
                 method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` // Include the token
                 },
                 body: JSON.stringify({ ids: idsToDelete })
             });
-
+    
             if (response.ok) {
                 fetchLogs(); // Refresh logs after deletion
                 setSelectedLogs(new Set()); // Clear selected logs
@@ -179,6 +193,7 @@ const Calculator = () => {
             console.error('Error:', error);
         }
     };
+    
 
     const filteredLogs = logs.filter(log => {
         if (!filter.column || !filter.value) return true;
@@ -271,7 +286,7 @@ const Calculator = () => {
                                 <td>{log.id}</td>
                                 <td>{log.expression}</td>
                                 <td>{log.is_valid ? 'Yes' : 'No'}</td>
-                                <td>{log.output =="invalid expression"||"N/A"}</td>
+                                <td>{log.output === "invalid expression" ? "N/A" : log.output}</td>
                                 <td>{new Date(log.created_on).toLocaleDateString()}</td>
                             </tr>
                         ))}
