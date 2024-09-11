@@ -89,7 +89,15 @@ const Calculator = () => {
     };
 
     const handleButtonClick = async (buttonText) => {
-        if (buttonText === '=') {
+        if (buttonText === 'AC') {
+            setInputValue('');  // Clears the input field
+            setResult('');      // Clears the result field
+        }else if (buttonText === '⌫') {
+            // Remove the last character from inputValue
+            const updatedValue = inputValue.slice(0, -1);
+            setInputValue(updatedValue);
+            setResult(evaluateExpression(updatedValue));}
+       else if (buttonText === '=') {
             const expression = inputValue
                 .replace(/×/g, '*')
                 .replace(/÷/g, '/')
