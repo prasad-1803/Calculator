@@ -1,26 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useSelector } from 'react-redux'; // Import useSelector from react-redux
 import EditProfile from './EditProfile'; // Adjust the import path as needed
-import "../../styles/ProfileDetails.css";
+import "../styles/ProfileDetails.css";
 
 const ProfileDetails = ({ onClose }) => {
-  const [profile, setProfile] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
 
-  // Fetch profile data from local storage when the component is mounted
-  useEffect(() => {
-    const fetchProfile = () => {
-      try {
-        const profileData = localStorage.getItem('profile'); // Change 'profile' to the key used to store your profile data
-        if (profileData) {
-          setProfile(JSON.parse(profileData));
-        }
-      } catch (error) {
-        console.error('Error fetching profile data:', error);
-      }
-    };
-
-    fetchProfile();
-  }, []);
+  // Fetch profile data from Redux store
+  const profile = useSelector((state) => state.auth.user); // Adjust the path if necessary
 
   const handleEditClose = () => {
     setIsEditing(false);

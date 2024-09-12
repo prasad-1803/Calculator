@@ -1,49 +1,105 @@
-// store/authSlice.js
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-// Async thunk for sign-in
-export const signIn = createAsyncThunk('auth/signIn', async (userData, { rejectWithValue }) => {
-  try {
-    const response = await axios.post('/api/signin', userData);
-    return response.data;
-  } catch (error) {
-    return rejectWithValue(error.response.data);
-  }
-});
+// Utility functions for base64 encoding and decoding
+const encodeBase64 = (data) => btoa(JSON.stringify(data));
+const decodeBase64 = (data) => JSON.parse(atob(data));
 
-// Slice for managing authentication
+const getInitialUser = () => {
+  try {
+    const user = localStorage.getItem('user');
+    return user ? decodeBase64(user) : null;
+  } catch (error) {
+    console.error('Failed to parse user from localStorage:', error);
+    return null;
+  }
+};
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: null,
-    isAuthenticated: false,
+    user: getInitialUser(),
+    token: localStorage.getItem('token') || null,
     loading: false,
     error: null,
   },
   reducers: {
-    signOut: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
+    setUser(state, action) {
+      state.user = action.payload;
+      try {
+        localStorage.setItem('user', encodeBase64(action.payload));
+      } catch (error) {
+        console.error('Failed to save user to localStorage:', error);
+      }
+      state.error = null;
     },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(signIn.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(signIn.fulfilled, (state, action) => {
-        state.loading = false;
-        state.isAuthenticated = true;
-        state.user = action.payload;
-      })
-      .addCase(signIn.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      });
+    setToken(state, action) {
+      state.token = action.payload;
+      localStorage.setItem('token', action.payload);
+    },
+    clearUser(state) {
+      state.user = null;
+      state.token = null;
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+    },
+    setLoading(state, action) {
+      state.loading = action.payload;
+    },
+    setError(state, action) {
+      state.error = action.payload;
+      state.loading = false;
+    },
   },
 });
 
-export const { signOut } = authSlice.actions;
+export const { setUser, setToken, clearUser, setLoading, setError } = authSlice.actions;
+
+export const fetchProfile = () => async (dispatch, getState) => {
+  const { token } = getState().auth;
+
+  if (!token) {
+    dispatch(setError('No token available'));
+    return;
+  }
+
+  dispatch(setLoading(true));
+  
+  try {
+    const response = await axios.get('http://localhost:3000/api/profile', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+    dispatch(setUser(response.data));
+  } catch (error) {
+    const errorMsg = error.response?.data?.message || 'Failed to fetch profile';
+    dispatch(setError(errorMsg));
+    console.error('Failed to fetch profile', error);
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+export const login = (credentials) => async (dispatch) => {
+  dispatch(setLoading(true));
+  
+  try {
+    const response = await axios.post('http://localhost:3000/api/login', credentials);
+    const { token, user } = response.data;
+    dispatch(setToken(token));
+    dispatch(setUser(user));
+  } catch (error) {
+    const errorMsg = error.response?.data?.error || 'Login failed';
+    dispatch(setError(errorMsg));
+    console.error('Login failed', error);
+  } finally {
+    dispatch(setLoading(false));
+  }
+};
+
+export const logout = () => (dispatch) => {
+  dispatch(clearUser());
+};
+
 export default authSlice.reducer;

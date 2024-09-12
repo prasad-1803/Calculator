@@ -3,7 +3,7 @@ import { FaFilter } from "react-icons/fa";
 import { SlArrowRight } from "react-icons/sl";
 import { SlArrowLeft } from "react-icons/sl";
 import { RiDeleteBin6Line } from "react-icons/ri";
-import '../../styles/Calculator.css';
+import '../styles/Calculator.css';
 
 const Calculator = () => {
     const [inputValue, setInputValue] = useState('');
@@ -111,9 +111,11 @@ const Calculator = () => {
             if (expression) {
                 try {
                     const token = localStorage.getItem('token');
-                    const profile = localStorage.getItem('profile');
+                    const profile = localStorage.getItem('user');
+                    const decodedProfile = atob(profile);
+                    
                    
-                    const profileData = JSON.parse(profile);
+                    const profileData = JSON.parse(decodedProfile);
                     
                     const userId = profileData.id; // Retrieve the user ID
                     await fetch('http://localhost:3000/api/logs', {

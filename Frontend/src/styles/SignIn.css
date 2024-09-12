@@ -38,13 +38,14 @@
     padding: 0.75rem;
     border: 1px solid #ccc;
     border-radius: 4px;
+    
     font-size: 1rem;
   }
   
   .submit-button {
     padding: 0.75rem;
     border: none;
-    background-color: #4CAF50;
+    background-color:#007BFF !important;
     color: white;
     font-size: 1rem;
     border-radius: 4px;
@@ -55,8 +56,11 @@
   }
   
   .submit-button:hover {
-    background-color: #45a049;
+    background-color:#0056b3 !important;
   }
+  .submit-button:active {
+    background-color: #004085 !important; 
+}
   
   .error-message {
     color: red;

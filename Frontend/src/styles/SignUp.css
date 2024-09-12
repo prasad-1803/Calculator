@@ -9,6 +9,17 @@
     position: relative; /* Ensure position is relative for z-index */
     overflow: hidden; /* Hide overflow to prevent content from spilling */
 }
+.color-input {
+    width: 2rem; /* Adjust width to your preference */
+    height: 2rem; /* Adjust height to your preference */
+    border: none; /* Remove default border */
+    border-radius: 50%; /* Make it a circle */
+    background-color: rgb(217, 243, 255);
+    cursor: pointer;
+    padding: 0; /* Remove padding */
+    appearance: none; /* Remove default styling */
+}
+
 
 .signup-container h2 {
     text-align: center;
@@ -61,7 +72,7 @@
     text-decoration: none; 
     padding: 0.75rem;
     border: none;
-    background-color: #4CAF50;
+    background-color:#007BFF;
     color: white;
     font-size: 1rem;
     border-radius: 4px;
@@ -72,9 +83,11 @@
 }
 
 .submit-button:hover {
-    background-color: #5cb360;
+    background-color: #0056b3;
 }
-
+.submit-button:active {
+    background-color: #004085; 
+}
 .error-message {
     color: red;
     text-align: center;

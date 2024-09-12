@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import '../../styles/EditProfile.css';
-import { ColorPicker, useColor } from 'react-color-palette';
+import { useDispatch, useSelector } from 'react-redux'; // Import useDispatch and useSelector from react-redux
+import { setUser } from '../store/authSlice'; // Import setUser action
+import '../styles/EditProfile.css';
 
 const EditProfile = ({ onClose }) => {
   const [firstName, setFirstName] = useState('');
@@ -10,50 +11,42 @@ const EditProfile = ({ onClose }) => {
   const [homeAddress, setHomeAddress] = useState('');
   const [logo, setLogo] = useState('');
   const [message, setMessage] = useState('');
-  const [primaryColor, setPrimaryColor] = useColor('#ffffff'); // Initialize with a default color
-  const [secondaryColor, setSecondaryColor] = useColor('#ffffff'); // Initialize with a default color
+  const [primaryColor, setPrimaryColor] = useState('#ffffff'); // Initialize with a default color
+  const [secondaryColor, setSecondaryColor] = useState('#ffffff'); // Initialize with a default color
 
-  const [isPrimaryColorPickerVisible, setPrimaryColorPickerVisible] = useState(false);
-  const [isSecondaryColorPickerVisible, setSecondaryColorPickerVisible] = useState(false);
+  const dispatch = useDispatch(); // Initialize dispatch
+  const profile = useSelector((state) => state.auth.user); // Get profile from Redux store
 
-  // Fetch profile data from local storage when the component is mounted
+  // Fetch profile data from Redux store when the component is mounted
   useEffect(() => {
-    const fetchProfile = () => {
-      try {
-        const profileData = localStorage.getItem('profile');
-        if (profileData) {
-          const profile = JSON.parse(profileData);
-          setFirstName(profile.first_name || '');
-          setLastName(profile.last_name || '');
-          setAge(profile.age || '');
-          setHomeAddress(profile.home_address || '');
-          setPrimaryColor(profile.primary_color || '#ffffff'); // Use default color if not available
-          setSecondaryColor(profile.secondary_color || '#ffffff'); // Use default color if not available
-          setLogo(profile.logo || '');
-        }
-      } catch (error) {
-        setMessage('Error fetching profile data');
-      }
-    };
-
-    fetchProfile();
-  }, []);
+    if (profile) {
+      setFirstName(profile.first_name || '');
+      setLastName(profile.last_name || '');
+      setAge(profile.age || '');
+      setHomeAddress(profile.home_address || '');
+      setPrimaryColor(profile.primary_color || '#ffffff'); // Use default color if not available
+      setSecondaryColor(profile.secondary_color || '#ffffff'); // Use default color if not available
+      setLogo(profile.logo || '');
+    }
+  }, [profile]);
 
   const handleEditProfile = async (e) => {
     e.preventDefault();
     try {
-      // Update local storage profile data
+      // Update profile data
       const updatedProfile = {
         first_name: firstName,
         last_name: lastName,
         password: password, // Optional: Only update if provided
         age: age,
         home_address: homeAddress,
-        primary_color: primaryColor.hex, // Ensure the color is in HEX format
-        secondary_color: secondaryColor.hex, // Ensure the color is in HEX format
+        primary_color: primaryColor, // Store color directly
+        secondary_color: secondaryColor, // Store color directly
         logo: logo
       };
-      localStorage.setItem('profile', JSON.stringify(updatedProfile));
+
+      // Dispatch the action to update the profile in Redux store
+      dispatch(setUser(updatedProfile));
       setMessage('Profile updated successfully.');
 
       // Optionally, you can also trigger a function or an event to update other components
@@ -125,55 +118,23 @@ const EditProfile = ({ onClose }) => {
           <div className="form-right">
             <div className="form-group">
               <label>Primary Color</label>
-              <div
-                className="color-picker-dropdown"
-                onClick={() => setPrimaryColorPickerVisible(!isPrimaryColorPickerVisible)}
-              >
-                <input
-                  type="text"
-                  className="input-field"
-                  readOnly
-                  value={primaryColor.hex}
-                  placeholder="Select Primary Color"
-                />
-                {isPrimaryColorPickerVisible && (
-                  <ColorPicker
-                    width={50}
-                    height={50}
-                    color={primaryColor}
-                    onChange={setPrimaryColor}
-                    hideHSV
-                    hideRGB
-                    hideHEX
-                  />
-                )}
-              </div>
+              <input
+                type="color"
+                className="input-field"
+                value={primaryColor}
+                onChange={(e) => setPrimaryColor(e.target.value)}
+                required
+              />
             </div>
             <div className="form-group">
               <label>Secondary Color</label>
-              <div
-                className="color-picker-dropdown"
-                onClick={() => setSecondaryColorPickerVisible(!isSecondaryColorPickerVisible)}
-              >
-                <input
-                  type="text"
-                  className="input-field"
-                  readOnly
-                  value={secondaryColor.hex}
-                  placeholder="Select Secondary Color"
-                />
-                {isSecondaryColorPickerVisible && (
-                  <ColorPicker
-                    width={50}
-                    height={50}
-                    color={secondaryColor}
-                    onChange={setSecondaryColor}
-                    hideHSV
-                    hideRGB
-                    hideHEX
-                  />
-                )}
-              </div>
+              <input
+                type="color"
+                className="input-field"
+                value={secondaryColor}
+                onChange={(e) => setSecondaryColor(e.target.value)}
+                required
+              />
             </div>
             <div className="form-group">
               <label>Logo URL</label>
@@ -182,7 +143,6 @@ const EditProfile = ({ onClose }) => {
                 className="input-field"
                 value={logo}
                 onChange={(e) => setLogo(e.target.value)}
-                required
               />
             </div>
           </div>

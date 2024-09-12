@@ -1,20 +1,36 @@
 /* src/styles/Header.css */
+@import './variables.css';
 
 .header {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding: 10px 20px;
-    background-color: #f4f4f4;
-    border-bottom: 1px solid #ddd;
-  }
+  position: fixed;
+  top: 0;                /* Stick it to the top */
+  left: 0;               /* Stick it to the left */
+  width: 97%;           /* Make it span the full width */
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between; 
+  gap: 20px;/* More balanced alignment */
+  padding: 5px 20px; /* Slightly increased padding for comfort */
+  background-color:var(--primary-color); 
+  border-bottom: 2px solid #003f5c; /* Darker and bolder border */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+  border-radius: 0 0 8px 8px; /* Smooth bottom edges */
+}
+
   
   .header-content {
     display: flex;
     align-items: center;
     gap: 20px;
   }
-  
+  .header-content-right{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+  }
   .logo {
     width: 40px;
     height: 40px;
@@ -39,7 +55,7 @@
     padding: 5px 10px;
     border: none;
     border-radius: 5px;
-    background-color: #ff4c4c;
+    background-color:var(--secondary-color);
     color: #fff;
     cursor: pointer;
     font-size: 14px;
@@ -47,7 +63,7 @@
   }
   
   .sign-out-button:hover {
-    background-color: #e03a3a;
+    background-color:var(--secondary-color);
   }
   
   /* Styles for the Edit Profile modal */
@@ -61,6 +77,20 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    z-index: 99999;
+  }
+  
+  .initial-logo {
+    width: 40px;
+    height: 40px;
+    background-color: #ccc;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
   }
   
   .profile-detail-container {
