@@ -10,7 +10,7 @@ import Header from './components/Headers';
 
 const AppContent = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate(); // Now within Router context
+  const navigate = useNavigate(); 
 
   // Select user and token from Redux store
   const user = useSelector((state) => state.auth.user);
@@ -37,7 +37,7 @@ const AppContent = () => {
   const handleSignOut = () => {
     dispatch(logout()); // Use the logout action
     navigate('/signin'); // Redirect to sign-in page
-    console.log('User signed out'); // Debug log
+   
   };
 
   return (

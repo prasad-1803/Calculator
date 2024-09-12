@@ -120,7 +120,7 @@ const EditProfile = ({ onClose }) => {
               <label>Primary Color</label>
               <input
                 type="color"
-                className="input-field"
+                className="input-field-colour"
                 value={primaryColor}
                 onChange={(e) => setPrimaryColor(e.target.value)}
                 required
@@ -130,7 +130,7 @@ const EditProfile = ({ onClose }) => {
               <label>Secondary Color</label>
               <input
                 type="color"
-                className="input-field"
+                className="input-field-colour"
                 value={secondaryColor}
                 onChange={(e) => setSecondaryColor(e.target.value)}
                 required

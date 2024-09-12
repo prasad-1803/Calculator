@@ -9,6 +9,16 @@
     max-width: 600px;
     margin: auto;
 }
+.input-field-colour{
+    width: 2rem; /* Adjust width to your preference */
+    height: 2rem; /* Adjust height to your preference */
+    border: none; /* Remove default border */
+    border-radius: 50%; /* Make it a circle */
+    background-color: rgb(217, 243, 255);
+    cursor: pointer;
+    padding: 0; /* Remove padding */
+    appearance: none; /* Remove default styling */
+}
 
 .edit-profile-container h2 {
     text-align: center;
