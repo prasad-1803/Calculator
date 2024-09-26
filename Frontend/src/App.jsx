@@ -3,10 +3,10 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchProfile, logout } from './store/authSlice'; // Import actions
-import SignIn from './components/SignIn';
-import SignUp from './components/SignUp';
-import Calculator from './components/Calculator';
-import Header from './components/Headers';
+import SignIn from '../src/components/SignIn';
+import SignUp from '../src/components/SignUp';
+import Calculator from '../src/components/Calculator'
+import Header from '../src/components/Headers';
 
 const AppContent = () => {
   const dispatch = useDispatch();
