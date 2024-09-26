@@ -21,7 +21,7 @@ const dummyLogs = [
         output: "invalid expression",
         created_on: "2023-09-25T12:00:00Z",
     },
-    // Add more dummy logs as needed
+   
 ];
 
 export default dummyLogs;

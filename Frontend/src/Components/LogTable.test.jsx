@@ -1,9 +1,9 @@
-// src/__tests__/LogsTable.test.js
+
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { describe, it, beforeEach, expect, vi } from 'vitest';
-import LogsTable from './LogsTable'; // Adjust the import path as needed
-import dummyLogs from './MockData'; // Assuming you have the MockData file
+import LogsTable from './LogsTable'; 
+import dummyLogs from './MockData'; 
 
 describe('LogsTable Component', () => {
     const setSelectedLogs = vi.fn();
@@ -43,14 +43,14 @@ describe('LogsTable Component', () => {
         );
     });
 
-    it('renders table with logs', () => {
+    test('renders table with logs', () => {
         expect(screen.getByText(/Calculator Logs Table/i)).toBeInTheDocument();
         expect(screen.getByText(/2 \+ 2/i)).toBeInTheDocument();
         expect(screen.getByText(/5 \* 3/i)).toBeInTheDocument();
         expect(screen.getByText(/invalid expression/i)).toBeInTheDocument();
     });
 
-    it('allows selecting a log', () => {
+    test('allows selecting a log', () => {
         const checkbox = screen.getAllByRole('checkbox')[1]; 
         fireEvent.click(checkbox);
         expect(setSelectedLogs).toHaveBeenCalledWith(expect.any(Set));

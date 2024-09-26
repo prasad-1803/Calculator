@@ -1,57 +1,66 @@
-import React from "react";
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import Calculator from "./Calculator"; // Adjust to your path
-import axios from "axios";
-import { vi } from "vitest"; // Vitest import
+import React from 'react';
+import { render, fireEvent, waitFor } from '@testing-library/react';
+import Calculator from './Calculator'; // Adjust the import based on your file structure
+import { afterEach, test, expect, vi, beforeEach, beforeAll } from 'vitest';
 
-// Mock axios for API calls using Vitest
-vi.mock("axios");
-
-// Mock the wrap function if it's imported
-vi.mock('./path/to/wrapFunction', () => ({
-  wrap: vi.fn(), // Mock the wrap function
-}));
-
-test("input field is displayed correctly", () => {
-  render(<Calculator />);
-  const inputElement = screen.getByRole("textbox");
-  expect(inputElement).toBeInTheDocument();
+// Enable fetch mock
+beforeEach(() => {
+  vi.clearAllMocks();
+  global.fetch = vi.fn();
 });
 
-
-test("displays correct input on number/operator click for subtraction", () => {
-  render(<Calculator />);
-
-  // Check the input field
-  const inputElement = screen.getByRole("textbox");
-
-  // Simulate button clicks for '7', '-', '3'
-  fireEvent.click(screen.getByText("7"));
-  fireEvent.click(screen.getByText("-"));
-  fireEvent.click(screen.getByText("3"));
-
-  // Assert the input value
-  expect(inputElement.value).toBe("7-3");
+beforeAll(() => {
+  const mockUserProfile = btoa(JSON.stringify({ id: '123' })); // Mocking user profile
+  localStorage.setItem('token', 'mock-token');
+  localStorage.setItem('user', mockUserProfile);
 });
 
+// Test for displaying number/operator clicks
+test('displays clicked numbers and operators on the calculator display', () => {
+  const { getByText, getByRole } = render(<Calculator />);
 
-test("displays correct input on number/operator click for addition", () => {
-  render(<Calculator />);
+  // Simulate button clicks for numbers and an operator
+  fireEvent.click(getByText("5"));
+  fireEvent.click(getByText("+"));
+  fireEvent.click(getByText("2"));
 
-  // Check the input field
-  const inputElement = screen.getByRole("textbox");
-
-  // Simulate button clicks for '7', '+', '3'
-  fireEvent.click(screen.getByText("7"));
-  fireEvent.click(screen.getByText("+"));
-  fireEvent.click(screen.getByText("3"));
-
-  // Assert the input value
-  expect(inputElement.value).toBe("7+3");
+  // Check that the calculator display shows the correct sequence
+  const displayInput = getByRole("textbox"); // Assuming you have an input element for displaying results
+  expect(displayInput).toHaveValue("5+2"); // Assuming the display shows the current input expression
 });
 
-test("calculator logs are displayed correctly", () => {
-  render(<Calculator />);
-  const logsTable = screen.getByRole("table");
-  expect(logsTable).toBeInTheDocument();
+// Test for evaluating an expression and checking API call
+test('evaluates expression and sends API request on "=" button click', async () => {
+  // Mock the fetch API response to simulate successful API request
+  fetch.mockResolvedValueOnce({
+    ok: true,
+    json: async () => ({ success: true }), // Adjust response based on your implementation
+  });
+
+  const { getByText, getByRole } = render(<Calculator />);
+
+  // Simulate button clicks for the calculation
+  fireEvent.click(getByText("5"));
+  fireEvent.click(getByText("+"));
+  fireEvent.click(getByText("2"));
+  fireEvent.click(getByText("="));
+
+  // Check that the result is displayed correctly
+  const displayInput = getByRole("textbox"); // Assuming you have an input element for displaying results
+  await waitFor(() => expect(displayInput).toHaveValue("7")); // Check if the result is displayed as expected
+
+  // Verify the API call details
+  expect(fetch).toHaveBeenCalledWith("http://localhost:3000/api/logs", {
+    method: "POST", // Ensure you're using POST method
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer mock-token`,
+    },
+    body: JSON.stringify({
+      expression: "5+2",  // Ensure this matches your implementation
+      is_valid: true,     // Assuming the result is valid
+      output: 7,         // Expected output should be a number
+      userId: "123",      // Mocked user ID
+    }),
+  });
 });

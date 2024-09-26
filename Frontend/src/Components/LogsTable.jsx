@@ -28,9 +28,9 @@ const LogsTable = ({
     setSearchValue,
 }) => {
     const totalPages = Math.ceil(logs.length / rowsPerPage);
-    const filteredLogs = logs.filter(log => 
+    const filteredLogs = Array.isArray(logs) ? logs.filter(log=> 
         filter.value ? log[filter.column]?.toString().toLowerCase().includes(filter.value.toLowerCase()) : true
-    );
+    ):[];
 
     const currentLogs = filteredLogs.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
 
